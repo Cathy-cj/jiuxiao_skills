@@ -1,0 +1,192 @@
+{
+    "key": "auth_****key",
+    "data": [
+        {
+            "number_mark": "W1-gkcc-1-B",
+            "learning_objective": "理解函数定义域的限制条件，学会由根号和分母列不等式求定义域，学会由复合函数的定义域反求原函数定义域。",
+            "core_method": "求解析式定义域时，把根号下非负、分母不为零等限制写成不等式组再取交集。已知复合函数 f(2x+1) 的定义域时，先写出自变量的取值范围，再代入一次式算出内层表达式的取值范围，那就是 f(x) 的定义域。遇到反函数时，反函数的定义域就是原函数的值域，据此反解出自变量范围。",
+            "begin_guide_data": {
+                "tts_text": "同学，今天我们一起学习函数的三要素，重点是定义域和值域。我们会先看清根号、分母这些限制条件，再根据复合关系反求出原来的定义域，把各个条件的公共部分取出来。学习时请你边听边写出不等式，想一想每一步为什么这样列，最后用自己的话把求解过程讲清楚。",
+                "audio": "https://static-ai-math.zmexing.com/aimathclass/tts/ZtaLdvVV45.mp3"
+            },
+            "lesson_data": [
+                {
+                    "courseware_num": "W1-gkcc-1-2star"
+                },
+                {
+                    "courseware_num": "W1-gkcc-1-3star"
+                }
+            ],
+            "week_question_data": [
+                {
+                    "courseware_num": "W1-gkcc-1-2star",
+                    "question_point": "函数与方程",
+                    "stem": "函数 $f\\left(x\\right)=\\frac{1}{1-lgx}$ 的定义域为（ ）\nA．$\\left(0,+\\infty \\right)$\nB．$\\left(0,10\\right)$\nC．$\\left(10,+\\infty \\right)$\nD．$\\left(0,10\\right)\\cup \\left(10,+\\infty \\right)$",
+                    "stem_pic": "",
+                    "standard_answer": "D",
+                    "analysis": "要使函数有意义，则需同时满足$1-lgx\\neq 0$且$x>0$，解得$x>0$且$x\\neq 10$，\n\n所以函数$f(x)$的定义域为$(0,10)\\cup (10,+\\infty )$"
+                },
+                {
+                    "courseware_num": "W1-gkcc-1-3star",
+                    "question_point": "函数与方程",
+                    "stem": "若函数$y=f\\left(3x+1\\right)$的定义域为$\\left[-2,4\\right]$，则$y=f\\left(x\\right)$的定义域是（ ）\nA．$\\left[-1,1\\right]$\nB．$\\left[-5,13\\right]$\nC．$\\left[-5,1\\right]$\nD．$\\left[-1,13\\right]$",
+                    "stem_pic": "",
+                    "standard_answer": "B",
+                    "analysis": "因为函数$y=f\\left(3x+1\\right)$的定义域为$\\left[-2,4\\right]$，即$-2\\leq x\\leq 4$\n\n所以$-5\\leq 3x+1\\leq 13$\n\n所以$y=f\\left(x\\right)$的定义域是$\\left[-5,13\\right]$\n\n故选:B."
+                }
+            ],
+            "feiman_data": [
+                {
+                    "question": "下列说法正确的是（     ）\nA．$A=B=\\mathbf{N}^{*}$，对应关系$f:x\\to x-1$是A到B的函数\nB．$y=\\frac{1}{\\left|x\\right|}$和$y=\\frac{1}{{(\\sqrt{x})}^{2}}$表示同一函数\nC．若函数$f\\left(x\\right)$的定义域为$\\left(-1,1\\right)$，则函数$y=f\\left(2x-1\\right)$的定义域为$\\left(0,1\\right)$\nD．函数$f\\left(x\\right)=\\frac{2}{x}+x\\left(x\\in \\left[1,3\\right]\\right)$的值域是$\\left[3,\\frac{11}{3}\\right]$",
+                    "answer": "先逐项对照函数定义和定义域。因为要把内层一次式限制在原定义域里，所以由#$-1<2x-1<1$#得到定义域是$\\left(0,1\\right)$；又因为其余选项不满足函数定义或同一函数条件，所以选C。",
+                    "image_url": ""
+                }
+            ],
+            "feiman_guide_data": {
+                "tts_text": "同学，请你按课上的方法把这道题从头讲一遍。先说你是怎么逐项检查函数定义和定义域的，再说复合函数的定义域是怎样由内层一次式反推出来的。讲的时候请把空出来的地方补全说出来，不要只报选项。",
+                "audio": "https://static-ai-math.zmexing.com/aimathclass/tts/5FCQatl1ZC.mp3"
+            },
+            "homework_data": [
+                {
+                    "question": "函数 $y=\\frac{\\sqrt{4-{2}^{x}}}{x+1}$ 的定义域是（ ）\n\nA．$\\left(-1,2\\right)$\nB．$\\left[2,+\\infty \\right)$\nC．$\\left(-\\infty ,-1\\right)\\cup \\left(-1,2\\right]$\nD．$\\left(-\\infty ,-1\\right)\\cup \\left(2,+\\infty \\right)$",
+                    "answer": "C",
+                    "analysis": "由于偶次根号下的被开方数非负，则$4-{2}^{x}\\geq 0$，即${2}^{x}\\leq 4={2}^{2}$，\n\n因为$y={2}^{x}$是增函数，解得$x\\leq 2$；\n\n另外，由分母不为零得$x+1\\neq 0$，解得$x\\neq -1$.\n\n综上，定义域为$(-\\infty ,-1)\\cup \\left(-1,2\\right]$",
+                    "image_url": "",
+                    "question_type": 4,
+                    "star": 3,
+                    "question_source": "AI数学课题库",
+                    "options_json": ""
+                }
+            ],
+            "homework_guide_data": {
+                "tts_text": "同学，先看清根号和分母各自有什么限制，再分别列出不等式。根号里的指数式要想清楚怎么和整数次幂比较，分母不为零也别漏，最后把两边的范围合在一起。",
+                "audio": "https://static-ai-math.zmexing.com/aimathclass/tts/AFag4tB8xJ.mp3"
+            }
+        },
+        {
+            "number_mark": "W1-gkcc-1-A",
+            "learning_objective": "学会由复合函数的定义域反求原函数定义域，理解多重限制下求定义域要先反求再取交集，学会列出复合、根式和分母条件并求公共部分。",
+            "core_method": "先根据已知复合函数的定义域，把内层一次式的取值范围算出来，得到 f(x) 的定义域。再对新函数列出所有限制：内层自变量落在 f 的定义域、根号下为正、分母不为零，把这些不等式的解集取交集。",
+            "begin_guide_data": {
+                "tts_text": "同学，今天我们一起学习函数的三要素，重点是定义域和值域。我们会先看清根号、分母这些限制条件，再根据复合关系反求出原来的定义域，把各个条件的公共部分取出来。学习时请你边听边写出不等式，想一想每一步为什么这样列，最后用自己的话把求解过程讲清楚。",
+                "audio": "https://static-ai-math.zmexing.com/aimathclass/tts/ZtaLdvVV45.mp3"
+            },
+            "lesson_data": [
+                {
+                    "courseware_num": "W1-gkcc-1-3star"
+                },
+                {
+                    "courseware_num": "W1-gkcc-1-4star"
+                }
+            ],
+            "week_question_data": [
+                {
+                    "courseware_num": "W1-gkcc-1-3star",
+                    "question_point": "函数与方程",
+                    "stem": "若函数$y=f\\left(3x+1\\right)$的定义域为$\\left[-2,4\\right]$，则$y=f\\left(x\\right)$的定义域是（ ）\nA．$\\left[-1,1\\right]$\nB．$\\left[-5,13\\right]$\nC．$\\left[-5,1\\right]$\nD．$\\left[-1,13\\right]$",
+                    "stem_pic": "",
+                    "standard_answer": "B",
+                    "analysis": "因为函数$y=f\\left(3x+1\\right)$的定义域为$\\left[-2,4\\right]$，即$-2\\leq x\\leq 4$\n\n所以$-5\\leq 3x+1\\leq 13$\n\n所以$y=f\\left(x\\right)$的定义域是$\\left[-5,13\\right]$\n\n故选:B."
+                },
+                {
+                    "courseware_num": "W1-gkcc-1-4star",
+                    "question_point": "函数与方程",
+                    "stem": "若函数$f\\left(2x-1\\right)$的定义域为$\\left[-\\frac{1}{2},0\\right]$，则$y=\\frac{f\\left(\\frac{1}{x}\\right)}{\\sqrt{x+1}}+\\sqrt{1-{3}^{x}}$的定义域为（ ）\nA．$\\left(-1,-\\frac{2}{3}\\right]$\nB．$\\left[-1,-\\frac{2}{3}\\right]$\nC．$\\left[-1,-\\frac{1}{2}\\right]$\nD．$\\left(-1,-\\frac{1}{2}\\right]$",
+                    "stem_pic": "",
+                    "standard_answer": "D",
+                    "analysis": "因为函数$f\\left(2x-1\\right)$的定义域为$\\left[-\\frac{1}{2},0\\right]$，\n\n所以$x\\in \\left[-\\frac{1}{2},0\\right],2x-1\\in \\left[-2,-1\\right]$，所以$f\\left(x\\right)$的定义域为$\\left[-2,-1\\right]$，\n\n则函数$y=\\frac{f\\left(\\frac{1}{x}\\right)}{\\sqrt{x+1}}+\\sqrt{1-{3}^{x}}$有意义，\n\n需同时满足$-2\\leq \\frac{1}{x}\\leq -1$、$x+1>0$且$1-{3}^{x}\\geq 0$，得$-1\\leq x\\leq -\\frac{1}{2}$、$x>-1$且$x\\leq 0$，得$-1 \\lt x\\leq -\\frac{1}{2}$，\n\n则函数$y=\\frac{f\\left(\\frac{1}{x}\\right)}{\\sqrt{x+1}}+\\sqrt{1-{3}^{x}}$的定义域为：$\\left(-1,-\\frac{1}{2}\\right]$，\n\n故选：D"
+                }
+            ],
+            "feiman_data": [
+                {
+                    "question": "若函数$f\\left(x\\right)$的定义域是$\\left[\\frac{1}{2},2\\right)$，则函数$y=\\frac{f\\left(\\log_{4}\\left(2x-1\\right)\\right)}{\\sqrt{8-{x}^{2}-2x}}$的定义域是__________．",
+                    "answer": "先按复合把对数限制写出来。因为对数的真数必须落在原定义域里，所以先列出#$\\dfrac{1}{2}\\leq\\log_{4}(2x-1)<2$#；又因为还要满足#真数大于零和分母根式非负#，所以把各段范围取交集。",
+                    "image_url": ""
+                }
+            ],
+            "feiman_guide_data": {
+                "tts_text": "同学，请你按课上的方法把这道题从头讲一遍。先说复合里的对数要满足什么范围，再说真数和分母根式还有哪些限制，最后说明这些条件怎样取交集。遇到空出来的地方，请你把它补全说出来。",
+                "audio": "https://static-ai-math.zmexing.com/aimathclass/tts/npdohcgb6O.mp3"
+            },
+            "homework_data": [
+                {
+                    "question": "(多选)已知函数$f(x)=\\sqrt{m{x}^{2}-mx+3}$，则下列选项正确的是（ ）\n\nA．若$f(x)$的定义域为$R$，则$m\\in \\left[0,12\\right]$\nB．若$f(x)$的定义域为$\\left[-2 ,3\\right]$，则$m=-\\frac{1}{2}$\nC．若$f(x)$的值域为$\\left[0,+\\infty \\right)$，则$m\\in (12,+\\infty )$\nD．若$f(x)$在$(\\frac{1}{2},+\\infty )$上单调递增，则$m\\in (0,+\\infty )$",
+                    "answer": "AB",
+                    "analysis": "对于A，由$f(x)$的定义域为$R$，得对任意$x\\in R$都有$m{x}^{2}-mx+3\\geq 0$成立，\n\n当$m=0$时，$3\\geq 0$成立，则$m=0$；\n\n当$m\\neq 0$时，需同时满足$m>0$且$\\Delta ={m}^{2}-12m\\leq 0$，解得$0 \\lt m\\leq 12$，因此$0\\leq m\\leq 12$，A正确；\n\n对于B，由$f(x)$的定义域为$\\left[-2,3\\right]$，得$\\left[-2,3\\right]$是不等式$m{x}^{2}-mx+3\\geq 0$的解集，\n\n则$m < 0$，且$-2,3$为方程$m{x}^{2}-mx+3=0$的两根，$-2\\times 3=\\frac{3}{m}$，解得$m=-\\frac{1}{2}$，B正确；\n\n对于C，由$f(x)$的值域为$\\left[0,+\\infty \\right)$，得函数$y=m{x}^{2}-mx+3$的值域包含$\\left[0,+\\infty \\right)$，\n\n则需同时满足$m>0$且$\\Delta ={m}^{2}-12m\\geq 0$，解得$m\\geq 12$，C错误；\n\n对于D，由$f(x)$在$(\\frac{1}{2},+\\infty )$上单调递增，得需同时满足$m>0$且$3-\\frac{1}{4}m\\geq 0$，解得$0 \\lt m\\leq 12$，D错误.\n\n故选：AB",
+                    "image_url": "",
+                    "question_type": 4,
+                    "star": 4,
+                    "question_source": "AI数学课题库",
+                    "options_json": ""
+                }
+            ],
+            "homework_guide_data": {
+                "tts_text": "同学，这是多选题，请你一选项一选项地看。先分清问的是定义域、值域还是单调性，再按二次式的开口和判别式去判断参数范围，不要凭感觉连选。",
+                "audio": "https://static-ai-math.zmexing.com/aimathclass/tts/QsrIpL27fJ.mp3"
+            }
+        },
+        {
+            "number_mark": "W1-gkcc-1-AA",
+            "learning_objective": "学会在复合、根式和分母多重限制下求定义域，理解用单调性由值域端点求参数，学会利用函数图象的对称性求值域。",
+            "core_method": "求复合函数定义域时，先反求出 f(x) 的定义域，再把对数真数、根式、分母等条件与复合限制取交集。已知闭区间上的值域时，先判断单调性，再用端点函数值等于值域端点列方程求参数。对称区间上若函数图象关于定点对称，值域两端之和就等于该对称点纵坐标的两倍。",
+            "begin_guide_data": {
+                "tts_text": "同学，今天我们一起学习函数的三要素，重点是定义域和值域。我们会先看清根号、分母这些限制条件，再根据复合关系反求出原来的定义域，把各个条件的公共部分取出来。学习时请你边听边写出不等式，想一想每一步为什么这样列，最后用自己的话把求解过程讲清楚。",
+                "audio": "https://static-ai-math.zmexing.com/aimathclass/tts/ZtaLdvVV45.mp3"
+            },
+            "lesson_data": [
+                {
+                    "courseware_num": "W1-gkcc-1-4star"
+                },
+                {
+                    "courseware_num": "W1-gkcc-1-5star"
+                }
+            ],
+            "week_question_data": [
+                {
+                    "courseware_num": "W1-gkcc-1-4star",
+                    "question_point": "函数与方程",
+                    "stem": "若函数$f\\left(2x-1\\right)$的定义域为$\\left[-\\frac{1}{2},0\\right]$，则$y=\\frac{f\\left(\\frac{1}{x}\\right)}{\\sqrt{x+1}}+\\sqrt{1-{3}^{x}}$的定义域为（ ）\nA．$\\left(-1,-\\frac{2}{3}\\right]$\nB．$\\left[-1,-\\frac{2}{3}\\right]$\nC．$\\left[-1,-\\frac{1}{2}\\right]$\nD．$\\left(-1,-\\frac{1}{2}\\right]$",
+                    "stem_pic": "",
+                    "standard_answer": "D",
+                    "analysis": "因为函数$f\\left(2x-1\\right)$的定义域为$\\left[-\\frac{1}{2},0\\right]$，\n\n所以$x\\in \\left[-\\frac{1}{2},0\\right],2x-1\\in \\left[-2,-1\\right]$，所以$f\\left(x\\right)$的定义域为$\\left[-2,-1\\right]$，\n\n则函数$y=\\frac{f\\left(\\frac{1}{x}\\right)}{\\sqrt{x+1}}+\\sqrt{1-{3}^{x}}$有意义，\n\n需同时满足$-2\\leq \\frac{1}{x}\\leq -1$、$x+1>0$且$1-{3}^{x}\\geq 0$，得$-1\\leq x\\leq -\\frac{1}{2}$、$x>-1$且$x\\leq 0$，得$-1 \\lt x\\leq -\\frac{1}{2}$，\n\n则函数$y=\\frac{f\\left(\\frac{1}{x}\\right)}{\\sqrt{x+1}}+\\sqrt{1-{3}^{x}}$的定义域为：$\\left(-1,-\\frac{1}{2}\\right]$，\n\n故选：D"
+                },
+                {
+                    "courseware_num": "W1-gkcc-1-5star",
+                    "question_point": "函数与方程",
+                    "stem": "函数$f\\left(x\\right)=\\sqrt{1-2x}-x$的值域为（ ）\nA．$\\left(-\\infty ,-2\\right]$\nB．$\\left(-\\infty ,-\\frac{1}{2}\\right]$\nC．$\\left[-2,+\\infty \\right)$\nD．$\\left[-\\frac{1}{2},+\\infty \\right)$",
+                    "stem_pic": "",
+                    "standard_answer": "D",
+                    "analysis": "令$t=\\sqrt{1-2x}\\geq 0$，则${t}^{2}=1-2x$，得$x=\\frac{1-{t}^{2}}{2}$，\n\n所以$f\\left(x\\right)=\\sqrt{1-2x}-x$可以转化为$y=t-\\frac{1-{t}^{2}}{2}=\\frac{1}{2}{t}^{2}+t-\\frac{1}{2}$．\n\n因为二次函数$y=\\frac{1}{2}{t}^{2}+t-\\frac{1}{2}$在$\\left[0,+\\infty \\right)$上单调递增，\n\n当$t\\geq 0$时，$y=\\frac{1}{2}{t}^{2}+t-\\frac{1}{2}\\geq -\\frac{1}{2}$，\n\n所以函数$f\\left(x\\right)$的值域为$\\left[-\\frac{1}{2},+\\infty \\right)$．\n\n故选：D．"
+                }
+            ],
+            "feiman_data": [
+                {
+                    "question": "已知函数$f(x)=\\frac{1}{{2}^{x}+1}-x$在区间$\\left[-k,k\\right]$上的值域为$\\left[m,n\\right]$，则$m+n=$（   ）\nA．0\nB．1\nC．2\nD．4",
+                    "answer": "先把函数改写成关于定点对称。因为减去二分之一后得到#奇函数#，所以图象关于点$\\left(0,\\dfrac{1}{2}\\right)$对称；又因为函数定义在#对称区间#上，所以值域两端之和是$1$，选B。",
+                    "image_url": ""
+                }
+            ],
+            "feiman_guide_data": {
+                "tts_text": "同学，请你按课上的方法把这道题从头讲一遍。先说你怎样看出这个函数图象的对称中心，再说对称区间上值域两端为什么会有固定的和。讲的时候请把空出来的地方补全说出来。",
+                "audio": "https://static-ai-math.zmexing.com/aimathclass/tts/3gq59af9Fd.mp3"
+            },
+            "homework_data": [
+                {
+                    "question": "已知${x}^{2}-{y}^{2}=1$，则$\\frac{1}{{x}^{2}}-\\frac{y}{x}$的取值范围是______.",
+                    "answer": "$\\left(-1,\\frac{5}{4}\\right]$",
+                    "analysis": "解法一：（齐次化）因为${x}^{2}-{y}^{2}=1$，\n\n所以$\\frac{1}{{x}^{2}}-\\frac{y}{x}=\\frac{{x}^{2}-{y}^{2}}{{x}^{2}}-\\frac{y}{x}=1-\\frac{{y}^{2}}{{x}^{2}}-\\frac{y}{x}$，因$\\frac{{y}^{2}}{{x}^{2}}=\\frac{{x}^{2}-1}{{x}^{2}}=1-\\frac{1}{{x}^{2}} \\lt 1$.\n\n令$\\frac{y}{x}=t$，则$-1 \\lt t \\lt 1$，\n\n令$g\\left(t\\right)=-{t}^{2}-t+1=-{(t+\\frac{1}{2})}^{2}+\\frac{5}{4}$,$\\left(-1 \\lt t \\lt 1\\right)$，显然$g{(t)}_{max}=g\\left(-\\frac{1}{2}\\right)=\\frac{5}{4}$，\n\n又由二次函数的对称性，$g(-1)\\gt g(1)$,即$-1=g(1) \\lt g(t)\\leq \\frac{5}{4}$,\n\n即$\\frac{1}{{x}^{2}}-\\frac{y}{x}$的取值范围是$\\left(-1,\\frac{5}{4}\\right]$.",
+                    "image_url": "",
+                    "question_type": 4,
+                    "star": 5,
+                    "question_source": "AI数学课题库",
+                    "options_json": ""
+                }
+            ],
+            "homework_guide_data": {
+                "tts_text": "同学，先看题目给的等式和要求的式子有没有相同的结构，想想能不能换成一个新的字母。换元以后要注意新字母的取值范围，再对这个二次式求最值。",
+                "audio": "https://static-ai-math.zmexing.com/aimathclass/tts/gcbBhRwjOl.mp3"
+            }
+        }
+    ],
+    "is_release": false
+}
