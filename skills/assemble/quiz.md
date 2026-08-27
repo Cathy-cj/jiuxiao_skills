@@ -31,12 +31,12 @@
 
 `stem`、`analysis` 写入前按 [schema.md](schema.md)「屏幕公式」改写：字母前的 `<` 改成 `\lt`，区间写成 `\left[` / `\right]`，拆掉 `\begin{array}` / `\{` 联立。`## 课件 ID` 仍逐字照抄，不得改。
 
-题目带图时，`stem_pic` 仍留空，只把裸 URL 写进 `stem` 正文中图片原本出现的位置，规则见 [media.md](media.md)。`stem_pic` 为空由 `node tools/check-class-rules.mjs` 硬性校验。
+题目带图时，`stem_pic` 仍留空。源 Markdown 题目或解析里的 `![说明](本地文件)` 必须原样保留进 `stem` / `analysis`，媒体阶段再按 [media.md](media.md) 上传并换成裸 URL。不得因为还不是 http URL 就删图。`stem_pic` 为空由 `node tools/check-class-rules.mjs` 硬性校验。
 
 ## 班型筛选与校验
 
 - B 只收 2、3 星；A 只收 3、4 星；AA 只收 4、5 星；AAA 只收 5、6 星；S 只收 7、8 星。
-- 按 [schema.md](schema.md)「班型取舍」被整体丢弃的班型不写晋级赛，它名下的晋级题一并丢弃并在交付摘要里点名。
+- 按 [schema.md](schema.md)「班型取舍」被整体丢弃的班型不写晋级赛，它名下的晋级题一并丢弃并在交付摘要里点名。前面班型缺课件时，已经配齐、写进 `data` 的班仍要收它配星范围内的晋级题，不得整课留空。
 - 先按星级筛选，再验证该题的 `courseware_num` 与 Markdown 的 `## 课件 ID` 原文一致，并能在同一班对象的 `lesson_data` 找到。
 - 不在配星范围、缺少对应星级目录、或 `lesson_data` 无同名课件的题目都丢弃。
 - 交付时逐条列明被丢弃的题目、星级和原因；不改写题目以凑齐晋级赛。

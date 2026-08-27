@@ -2,13 +2,13 @@
 
 ## 读取范围
 
-只处理按 [schema.md](schema.md)「班型取舍」确定要上传的班型（配星齐全的连续前缀）。对这些班型，读取其两个配星星级目录里的 `courseware.json`，`lesson_data` 恰好写这两条。每个关联项只写目录名：
+只处理按 [schema.md](schema.md)「班型取舍」确定要上传的班型（两个配星的 `courseware.json` 都在）。对这些班型，读取其两个配星星级目录里**已经存在**的 `courseware.json`，`lesson_data` 恰好写这两条。每个关联项只写目录名：
 
 ```json
 { "courseware_num": "<星级文件夹名>" }
 ```
 
-不要使用 JSON 顶层 `id`，不要读取 `nodes[]`，也不要以任何其他课节补星。`learning_objective` 与 `core_method` 都只从这两份 `courseware.json` 生成。
+不要使用 JSON 顶层 `id`，不要读取 `nodes[]`，也不要以任何其他课节或其他星级补星。不得为缺失星级新建 `courseware.json`。`learning_objective` 与 `core_method` 都只从这两份已有文件生成。
 
 ## `learning_objective`
 

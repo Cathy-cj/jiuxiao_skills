@@ -7,7 +7,7 @@ description: Assembles one lesson folder into a five-level class.json Body when 
 
 ## 职责
 
-从一个扁平课节目录组装一份请求 Body：顶层 `key`、按 B→A→AA→AAA→S 排列的 `data` 项和 `is_release=false`。`data` 里放几个班型由 [schema.md](schema.md)「班型取舍」决定：配星齐全的班型才上传，且必须是 B→S 的连续前缀（没有 6/7/8 星课件时就只有 B、A、AA 三项）。默认写出位置为 `c:\math\class\<课节编码>\class.json`。
+从一个扁平课节目录组装一份请求 Body：顶层 `key`、按 B→A→AA→AAA→S 排序的 `data` 项和 `is_release=false`。`data` 里放几个班型由 [schema.md](schema.md)「班型取舍」决定：两个配星的 `courseware.json` 都在的班才上传，彼此独立，允许缺口；**禁止**为缺失星级新建 `courseware.json` 或伪造课件内容。默认写出位置为 `c:\math\class\<课节编码>\class.json`。
 
 ## 输入
 
@@ -19,7 +19,7 @@ description: Assembles one lesson folder into a five-level class.json Body when 
 ## 输出
 
 - 一份顶层 `key="auth_****key"`、`is_release=false` 的 `class.json`；
-- `data` 是 B→A→AA→AAA→S 的连续前缀，每项配星齐全，`number_mark` 为 `<课节编码>-B/-A/-AA/-AAA/-S`；
+- `data` 只含配星齐全的班型，按 B→A→AA→AAA→S 排序（允许缺口），`number_mark` 为 `<课节编码>-B/-A/-AA/-AAA/-S`；
 - 交付摘要，列明整体丢弃的班型及其缺失星级、丢弃的晋级题和原因。
 
 ## 禁止项
@@ -28,6 +28,7 @@ description: Assembles one lesson folder into a five-level class.json Body when 
 - 文本组装阶段不调接口；媒体阶段只按 [media.md](media.md) 调用 TTS 与 COS 上传，禁止写 `example.com`；课节批量新增接口只在用户明确要求提交时按 [submit.md](submit.md) 调用，组装本身绝不触发；
 - 不写字段表中没有的键，不写注释标为“不填”的 `title`、`grade`、`level_code`、`exam_weight`，也不写 `main_title`、`sub_title`；每个班型必须写 `learning_objective`；
 - 不读取 `plan.json`、`nodes[]`、`index.html`、`audio/` 或 `courseware/` 运行时文件；
+- 不创建、不改写、不补写任何 `courseware.json` 或星级课件目录；缺课不得编造课件内容，配齐的班不得因前面缺口而漏传；
 - 不把本 SOP 复制到 `.cursor`。如需 `AGENTS.md`，它只能写“先读 skills/README.md”。
 
 ## 必读组合
@@ -43,34 +44,34 @@ description: Assembles one lesson folder into a five-level class.json Body when 
 ## 工作顺序
 
 1. 从星级目录名确定课节编码，读取 `sources.md` 建立当前课节允许读取的文件清单。
-2. 读取 `schema.md`，先按「班型取舍」定下这次上传哪几个班型（配星齐全 + 连续前缀），再建立这些班型的固定键、键顺序、空值和配星集合。
+2. 读取 `schema.md`，先按「班型取舍」定下这次上传哪几个班型（每个班只看自己的两份 `courseware.json` 是否都在），再建立这些班型的固定键、键顺序、空值和配星集合。没有任何班配齐则停止，不写产物。
 3. 按 `courseware.md` 填每班的 `lesson_data`、`learning_objective`、`core_method` 和 `begin_guide_data`。
 4. 按 `feiman.md` 为每班填 `feiman_data` 与 `feiman_guide_data`。
 5. 当前课节有相应 Markdown 时，按 `quiz.md`、`homework.md` 填题目和引导；没有时填字段规定的空值。
 6. 按 `schema.md` 组装顶层对象并写出目标 `class.json`。
 7. 按 `voice.md` 逐条复核三类 `tts_text`，运行 `node tools/check-tts-voice.mjs <课节编码>/class.json`。
-8. 按 `media.md` 运行 `node tools/fill-media.mjs <课节编码>/class.json`：写回三类引导音频，清空三个图片资源字段，并把上传得到的题图 URL 按原位置手工写进 `question` / `stem` 正文。
+8. 按 `media.md` 运行 `node tools/fill-media.mjs <课节编码>/class.json --source <课件根>`：写回三类引导音频，清空三个图片资源字段，并把源题里的本地图全部上传，自动把裸 URL 写进 `question` / `stem` / `analysis` 原位置。
 9. 运行 `node tools/check-class-rules.mjs <课节编码>/class.json --source <课件根>` 和 `node tools/check-feiman-answer.mjs <课节编码>/class.json`，两个硬性校验都通过后再做交付前自检。
 
 ## 与相邻阶段边界
 
-上游只有课节源文件；本阶段不制作或修订课件、quiz、homework。媒体阶段只调用 TTS 与 COS 上传。提交课节批量新增是本阶段之后的独立动作，须由用户明确发起，规则见 [submit.md](submit.md)。
+上游只有课节源文件；本阶段不制作、不修订、不补写课件、quiz、homework，也不得为缺失星级生成 `courseware.json`。媒体阶段只调用 TTS 与 COS 上传。提交课节批量新增是本阶段之后的独立动作，须由用户明确发起，规则见 [submit.md](submit.md)。
 
 ## 当前实现边界
 
-文本组装仍由 Agent 按分册完成。TTS、COS 签名与直传已落在 `tools/tts.mjs`、`tools/upload-image.mjs`、`tools/fill-media.mjs`；硬性校验落在 `tools/check-class-rules.mjs`（班型取舍、每班非空 `learning_objective`、`begin_guide_data` 不含 `main_title`/`sub_title`、`question_type=4`、`options_json=""`、图片字段留空、屏幕公式无「`<` 后接字母」、无裸 `$[a,b]$`、无 `array`）、`tools/check-feiman-answer.mjs`（按星挖空、因果链与 LaTeX）、`tools/check-tts-voice.mjs`（逐字稿）。图片在题面正文里的位置仍需人工写入，工具只上传和打印 URL。课节批量新增接口地址与 key 见 [submit.md](submit.md)，尚无封装工具，需手工 POST；未真正收到 `lesson_id_list` 前，不能声称已入库。
+文本组装仍由 Agent 按分册完成。TTS、COS 签名与直传已落在 `tools/tts.mjs`、`tools/upload-image.mjs`、`tools/fill-media.mjs`；硬性校验落在 `tools/check-class-rules.mjs`（班型取舍、每班非空 `learning_objective`、`begin_guide_data` 不含 `main_title`/`sub_title`、`question_type=4`、`options_json=""`、图片字段留空、源题有图则题面必须带 http(s) URL、屏幕公式无「`<` 后接字母」、无裸 `$[a,b]$`、无 `array`）、`tools/check-feiman-answer.mjs`（按星挖空、因果链与 LaTeX）、`tools/check-tts-voice.mjs`（逐字稿）。文本阶段保留源题的 `![说明](本地文件)`；`fill-media.mjs` 负责上传并写回裸 URL。课节批量新增接口地址与 key 见 [submit.md](submit.md)，尚无封装工具，需手工 POST；未真正收到 `lesson_id_list` 前，不能声称已入库。
 
 ## 交付前自检
 
 ```text
 □ 仅扫描了一个课节编码，且没读取任何其他课节的 class.json
 □ 顶层 key、data、is_release 三键齐全，is_release 为 false
-□ data 是 B→A→AA→AAA→S 的连续前缀，无中间挖空
-□ 每个写进 data 的班型两个配星课件齐全，lesson_data 恰好是这两条
-□ 被整体丢弃的班型已在交付摘要点名，并写明缺哪个星级目录
+□ data 只含配星齐全的班型，按 B→A→AA→AAA→S 排序（允许缺口），没有为缺失星级造课件
+□ 每个写进 data 的班型两个配星的 courseware.json 都在，lesson_data 恰好是这两条
+□ 配齐却未写入的班型为零；被整体丢弃的班型已在交付摘要点名，并写明缺哪份 courseware.json
 □ 每项 number_mark 与课节编码和班型一致
 □ 每个写进 data 的班型都有非空 learning_objective，紧挨 number_mark 之后，句式为「理解…，学会…。」，内容只来自该班两份 courseware.json
-□ 五个（或按实际班型数）begin_guide_data 仅含 tts_text 与 audio，无 main_title、sub_title；tts_text 完全相同，均为 2–3 句、100–150 字，且只称呼“同学”
+□ 每个写进 data 的 begin_guide_data 仅含 tts_text 与 audio，无 main_title、sub_title；tts_text 完全相同，均为 2–3 句、100–150 字，且只称呼“同学”
 □ 三类 tts_text 均通过 check-tts-voice.mjs：无阿拉伯数字、LaTeX、数学符号、单位缩写、直角引号「」
 □ 每条 week_question_data.courseware_num 与对应 quiz Markdown 的 ## 课件 ID 逐字一致
 □ 每条 feiman_data.answer 是课件讲法的因果复述，按费曼星级挖空（2–3星1处、4–5星2处、6–8星3处），含「因为…所以…；又因为…所以…」，去标记后不超过 500 字且与 question 不同
@@ -79,7 +80,7 @@ description: Assembles one lesson folder into a five-level class.json Body when 
 □ 所有 homework_data.question_type 均为 4，options_json 均为 ""
 □ 带选项的费曼题与作业题，选项都留在 question 正文里
 □ feiman_data.image_url、homework_data.image_url、week_question_data.stem_pic 全部为 ""
-□ 题干或选项带图的，裸 URL 已写进 question / stem 正文中图片原本出现的位置
+□ 题干或选项带图的：源里的 `![说明](本地文件)` 已保留到文本稿，fill-media 已换成裸 URL 写进 question / stem 原位置
 □ 所有“不填”字段均未写入，数组为空时为 []，对象为空时为 null；无音频时 audio 为 ""
 □ 有 tts_text 的引导对象，audio 已是 TTS 返回的 http(s) URL，且不含 example.com
 □ check-class-rules.mjs 与 check-feiman-answer.mjs 均已通过（含每班非空 learning_objective、begin_guide_data 无 main_title/sub_title、屏幕公式预览安全、费曼按星挖空与因果链）

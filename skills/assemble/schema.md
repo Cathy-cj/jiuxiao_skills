@@ -24,7 +24,7 @@
 }
 ```
 
-`data` 按 B、A、AA、AAA、S 的顺序排列，具体上传几个班由下面的「班型取舍」决定。每个对象的键顺序为：
+`data` 只放配星齐全的班型，按 B、A、AA、AAA、S 的顺序排列，允许缺口。每个对象的键顺序为：
 
 ```text
 number_mark
@@ -53,14 +53,16 @@ homework_guide_data
 
 ## 班型取舍
 
-一个班型的两个配星课件**必须齐全**才上传：AAA 需要 `<课节编码>-5star` 和 `-6star` 同时存在，S 需要 `-7star` 和 `-8star` 同时存在，缺任意一个，该班型**整体不写进 `data`**——不是写成空 `lesson_data`，是连这个对象一起不出现。
+一个班型的两个配星课件**必须齐全**才上传：所谓齐全，是两份 **`courseware.json` 文件都已存在**，不是「有星级文件夹」或「有题干 Markdown」。AAA 需要 `<课节编码>-5star/courseware.json` 和 `-6star/courseware.json` 同时在，缺任意一个，该班型**整体不写进 `data`**——不是写成空 `lesson_data`，是连这个对象一起不出现。
 
-- 常见情形：手上没有 6、7、8 星课件时，只上传 B、A、AA 三个班型，`data` 就是 3 项。
-- `data` 里的班型必须是 `B → A → AA → AAA → S` 的**连续前缀**，合法组合只有 `[B]`、`[B,A]`、`[B,A,AA]`、`[B,A,AA,AAA]`、`[B,A,AA,AAA,S]`。中间挖空（例如上了 B、A、S 而没有 AA）一律不合法；出现这种星级缺失时，从缺口往后的班型全部丢弃。
+- **按班独立取舍，互不拖累。** 每个班只看自己的两份 `courseware.json`。B 缺 2 星不影响已经配齐的 AA；前面缺口也不再把后面配齐的班一起丢掉。
+- **`data` 只收配齐的班**，按 `B → A → AA → AAA → S` 排序，允许中间或开头缺口。例如只有 4、5 星课件时 `data` 只有 AA；只有 2、3、5、6 星时 `data` 为 B 与 AAA。合法的是「配齐集合的排序」，不再要求必须从 B 连续铺到某一档。
 - 写进 `data` 的班型，其 `lesson_data` 必须**恰好**是它的两个配星课件，不多不少，按星级升序。既不允许只放一个，也不允许放配星表以外的星级。
-- 被丢弃的班型要在交付摘要里逐条点名：班型、缺哪个星级目录。不得为了凑满五班伪造 `lesson_data`、借用其他星级或其他课节的课件。
+- **禁止补造缺失课件。** 不得新建、改写、补写任何 `courseware.json`；不得用 `problem/*.md`、运行时文件或其他星级冒充缺失课件；不得为凑前缀或凑满五班伪造 `lesson_data`。文件夹在但没有 `courseware.json`，该星仍视为缺失。
+- 没有任何班两份 `courseware.json` 都在时，**停止组装、不写 `class.json`**，在交付摘要里点名缺哪些文件。
+- 被丢弃的班型要在交付摘要里逐条点名：班型、缺哪份 `courseware.json`。
 
-该规则由 `node tools/check-class-rules.mjs <课节编码>/class.json [--source <课件根>]` 硬性校验：不带 `--source` 校验 `data` 的前缀顺序与配星齐全；带 `--source` 时还会核对被丢弃的班型确实缺目录、且没有把配星齐全的班型漏掉。
+该规则由 `node tools/check-class-rules.mjs <课节编码>/class.json [--source <课件根>]` 硬性校验：不带 `--source` 校验班型按 B→S 排序、不重复、且每班 `lesson_data` 配星齐全；带 `--source` 时以磁盘上的 `courseware.json` 为准，配齐的班不得漏传，配不齐的班不得出现。
 
 ## 子对象形状
 

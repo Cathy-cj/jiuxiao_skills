@@ -57,18 +57,21 @@ PUT {cos_host}/{cos_key}  （Authorization + x-cos-security-token）
   ```
 
 - **题干带图**：URL 单独成行，插在原题里“如图”“竖式如下”“下图”这类指代之后；源 Markdown 里图片本来就排在题干和选项之间的，就仍排在中间。
-- 一律写**裸 URL**，不要写 `![说明](URL)` 这类 Markdown 图片语法。
-- 本地图片仍要上传：费曼题图取该班费曼星级 `courseware.json` 的 `flow_3.images[0].url`（本地文件常见于 `<星级>/courseware/assets/`），上传后把返回的 URL 写进 `question`。源里已经是真实 HTTP 图（非 `example.com`）的，直接把那个 URL 写进正文。
-- 找不到可上传的文件、或 `images` 为空时，正文里就不写 URL。不要用课件运行时图、不要伪造 URL。
+- 文本阶段先**原样保留**源里的 `![说明](本地文件名)`，不要删图，也不要提前改成裸 URL。媒体阶段由 `fill-media.mjs` 上传后改成裸 URL。
+- 最终产物一律写**裸 URL**，不要残留 `![说明](URL)` 或本地文件名。
+- 本地图片必须上传：源题里出现的**每一张**图都要传，不是只传 `images[0]`。费曼以该班费曼星级 `courseware.json` 的 `flow_3.stem` 为准：stem 里的 `![说明](文件名)` 以及 `images[]` 中文件名也出现在 stem 里的项，全部进 `question`。只出现在 `answer_detail` 的解析图不要写进 `question`。
+- 本地文件优先从 `<星级>/problem/<文件名>` 取，其次 `<星级>/`、`<星级>/assets/`、`<星级>/courseware/assets/`、`<星级>/images/`，以及同课节 `*-homework/`、`*-quiz/`、`*-upgrade/`。不要用课件运行时装饰图（星星图标等），不要伪造 URL。
+- 源里已经是真实 HTTP 图（非 `example.com`）的，直接把那个 URL 写进正文。
+- 源题有图却找不到文件、或上传后没写进正文，视为组装失败，不得静默丢图。
 
 ## 命令
 
-在 `c:\math\class\` 运行：
+在 `c:\math\class v3.7\` 运行（`--source` 必须是含有 `<课节编码>-3star` 等目录的课件根，例如桌面上的课节文件夹）：
 
 ```text
 node tools/tts.mjs --text "同学，今天我们一起学习……"
 node tools/upload-image.mjs --file <本地图片>
-node tools/fill-media.mjs <课节编码>/class.json
+node tools/fill-media.mjs <课节编码>/class.json --source <课件根>
 ```
 
-`fill-media.mjs` 会遍历当前课节 JSON：合成并写回三类引导音频；把三个图片资源字段强制清空为 `""`；上传找得到的费曼本地题图并**打印**返回的 URL。正文里的图片位置由人工按上一节写入，工具不会替你插进 `question` / `stem`——凡是打印出 `需写入正文` 的 URL，都要手工放到题面对应位置后再提交。
+`fill-media.mjs` 会遍历当前课节 JSON：合成并写回三类引导音频；把三个图片资源字段强制清空为 `""`；把题面里的 `![说明](本地文件)` 全部上传到 COS，并**自动**把返回的裸 URL 写回 `question` / `stem` / `analysis` 原位置。选项只有标号、图被删掉时，会按源 stem 的 A/B/C/D 顺序把 URL 补回去。找不到本地文件或补不进正文时直接失败。

@@ -46,7 +46,7 @@ POST https://test-jx-admin-api.zmexing.com/v1/aimathclass/external/lesson/batch/
 }
 ```
 
-`data` 里放几个班型由 [schema.md](schema.md)「班型取舍」决定：配星齐全的班型才上传，且必须是 B→S 的连续前缀。没有 6、7、8 星课件时就只提交 B、A、AA 三项，**不要**为 AAA、S 补空对象来凑满五项。提交前先跑 `node tools/check-class-rules.mjs <课节编码>/class.json`，它不通过就不发。
+`data` 里放几个班型由 [schema.md](schema.md)「班型取舍」决定：两个配星的 `courseware.json` 都在的班才上传，按 B→S 排序，允许缺口。**不要**为缺失星级补空对象或补造 `courseware.json` 来凑前缀。提交前先跑 `node tools/check-class-rules.mjs <课节编码>/class.json --source <课件根>`，它不通过就不发。
 
 `is_release=false` 只写草稿表 `math_lesson_draft`，不进正式表，也不触发下游 MQ 推送。`is_release=true` 才写 `math_lesson` 并推送下游——没有用户明确指令不得置 true。
 
@@ -103,7 +103,7 @@ POST https://test-jx-admin-api.zmexing.com/v1/aimathclass/external/lesson/batch/
 □ 用户明确要求提交，且已确认目标环境是测试还是生产
 □ 提交副本的 key 已替换为真值，课节产物里的 key 仍是 auth_****key
 □ is_release 为 false；置 true 有用户明确指令
-□ data 是 B→A→AA→AAA→S 的连续前缀，number_mark 本批无重复
+□ data 只含配星齐全的班型，按 B→A→AA→AAA→S 排序（允许缺口），number_mark 本批无重复
 □ check-class-rules.mjs 已通过（班型取舍、question_type=4、options_json=""、图片字段留空）
 □ 已记录返回的 traceId 与 number_mark → lesson_id 对照
 ```

@@ -1,7 +1,9 @@
 // 硬性校验 class.json 的业务规则（schema.md / homework.md / media.md）：
 //   1. 所有 homework_data[].question_type 必须是 4，options_json 必须是 ""
-//   2. 班型取舍：配星齐全才上传，且 data 必须是 B→A→AA→AAA→S 的连续前缀
+//   2. 班型取舍：两个配星的 courseware.json 都在才上传；data 按 B→A→AA→AAA→S 排序，允许缺口；
+//      禁止漏传已配齐的班，禁止写入配不齐的班，禁止把「有文件夹但无 courseware.json」当成有课件
 //   3. 图片资源字段留空：feiman_data[].image_url、homework_data[].image_url、week_question_data[].stem_pic 全为 ""
+//      题面不得残留 ![说明](本地文件)；源 stem 有图时 question/stem 必须已有 http(s) 图 URL
 //   4. 每个班型必须有非空 learning_objective
 //   5. begin_guide_data 只允许 tts_text、audio，不得写 main_title、sub_title
 //   6. 屏幕公式预览安全：不得出现 "<" 后接字母（空格也不行）、裸区间 "["、裸 "]$"、array/cases
@@ -9,6 +11,7 @@
 import { readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import process from 'node:process';
+import { leftoverLocalImages, httpUrlCount, stemImageKeys } from './image-refs.mjs';
 
 const ORDER = ['B', 'A', 'AA', 'AAA', 'S'];
 const STARS = { B: [2, 3], A: [3, 4], AA: [4, 5], AAA: [5, 6], S: [7, 8] };
@@ -72,9 +75,9 @@ function lessonCodeOf(numberMark) {
   return String(numberMark ?? '').replace(/-(AAA|AA|A|B|S)$/, '');
 }
 
-function isDir(path) {
+function isFile(path) {
   try {
-    return statSync(path).isDirectory();
+    return statSync(path).isFile();
   } catch {
     return false;
   }
@@ -112,15 +115,23 @@ if (typeof payload.key !== 'string' || !payload.key) {
 // ---- 规则 2：班型取舍 ----
 const marks = payload.data.map((item) => item?.number_mark);
 const types = marks.map(classTypeOf);
-const expected = ORDER.slice(0, payload.data.length);
 
+let lastOrder = -1;
 types.forEach((type, index) => {
-  if (type !== expected[index]) {
+  const orderIndex = ORDER.indexOf(type);
+  if (orderIndex < 0) {
     errors.push(
-      `data[${index}] (${marks[index] ?? '<缺少 number_mark>'}): 班型应为 ${expected[index]}，` +
-        `实为 ${type ?? '<无法识别>'}。data 必须是 B→A→AA→AAA→S 的连续前缀，不得中间挖空。`,
+      `data[${index}] (${marks[index] ?? '<缺少 number_mark>'}): 无法识别班型，只允许 B/A/AA/AAA/S。`,
+    );
+    return;
+  }
+  if (orderIndex <= lastOrder) {
+    errors.push(
+      `data[${index}] (${marks[index] ?? '<缺少 number_mark>'}): 班型必须按 B→A→AA→AAA→S 升序且不重复，` +
+        `当前落到了已出现或更靠前的班。配不齐的班整段不写，配齐的班按该顺序排列，允许缺口。`,
     );
   }
+  lastOrder = orderIndex;
 });
 
 const codes = new Set(marks.map(lessonCodeOf).filter(Boolean));
@@ -183,6 +194,12 @@ payload.data.forEach((lesson, index) => {
       scanScreenMath(item?.question, `${at}.question`, errors);
       scanScreenMath(item?.answer, `${at}.answer`, errors);
       scanScreenMath(item?.analysis, `${at}.analysis`, errors);
+      leftoverLocalImages(item?.question).forEach((img) => {
+        errors.push(`${at}.question: 仍有本地图 ${JSON.stringify(img.src)}，须先上传并把裸 URL 写进题面。`);
+      });
+      leftoverLocalImages(item?.analysis).forEach((img) => {
+        errors.push(`${at}.analysis: 仍有本地图 ${JSON.stringify(img.src)}，须先上传并把裸 URL 写进解析。`);
+      });
     });
   }
 
@@ -200,6 +217,9 @@ payload.data.forEach((lesson, index) => {
       }
       scanScreenMath(item?.question, `${at}.question`, errors);
       scanScreenMath(item?.answer, `${at}.answer`, errors);
+      leftoverLocalImages(item?.question).forEach((img) => {
+        errors.push(`${at}.question: 仍有本地图 ${JSON.stringify(img.src)}，须先上传并把裸 URL 写进题面。`);
+      });
     });
   }
 
@@ -218,6 +238,12 @@ payload.data.forEach((lesson, index) => {
       scanScreenMath(item?.stem, `${at}.stem`, errors);
       scanScreenMath(item?.analysis, `${at}.analysis`, errors);
       scanScreenMath(item?.standard_answer, `${at}.standard_answer`, errors);
+      leftoverLocalImages(item?.stem).forEach((img) => {
+        errors.push(`${at}.stem: 仍有本地图 ${JSON.stringify(img.src)}，须先上传并把裸 URL 写进题面。`);
+      });
+      leftoverLocalImages(item?.analysis).forEach((img) => {
+        errors.push(`${at}.analysis: 仍有本地图 ${JSON.stringify(img.src)}，须先上传并把裸 URL 写进解析。`);
+      });
     });
   }
 });
@@ -229,46 +255,68 @@ if (JSON.stringify(payload).includes('example.com')) {
 
 // ---- 规则 2 的目录侧校验（可选）----
 if (sourceRoot) {
-  const starExists = (star) => isDir(join(sourceRoot, `${lessonCode}-${star}star`));
+  const starReady = (star) =>
+    isFile(join(sourceRoot, `${lessonCode}-${star}star`, 'courseware.json'));
+  const missingFiles = (stars) =>
+    stars.filter((star) => !starReady(star)).map((star) => `${lessonCode}-${star}star/courseware.json`);
+
+  const readyTypes = ORDER.filter((type) => STARS[type].every((star) => starReady(star)));
+  const gotTypes = types.filter(Boolean);
+  if (JSON.stringify(gotTypes) !== JSON.stringify(readyTypes)) {
+    errors.push(
+      `${lessonCode}: 按磁盘 courseware.json 应上传 ${readyTypes.length ? readyTypes.join('→') : '（无配齐班型）'}，` +
+        `实际为 ${gotTypes.length ? gotTypes.join('→') : '（空）'}。` +
+        '配齐的班必须全部写入，配不齐的班不得出现，不得为缺失星级编造课件。',
+    );
+  }
 
   payload.data.forEach((lesson, index) => {
     const type = types[index];
     const stars = STARS[type];
     if (!stars) return;
-    const missing = stars.filter((star) => !starExists(star));
+    const missing = missingFiles(stars);
     if (missing.length) {
       errors.push(
-        `${lesson?.number_mark}: 已上传该班型，但配星目录缺失 ${missing.map((s) => `${lessonCode}-${s}star`).join('、')}。`,
+        `${lesson?.number_mark}: 已上传该班型，但缺少 ${missing.join('、')}。不得编造缺失的 courseware.json。`,
       );
+    }
+    const feimanStar = { B: 3, A: 4, AA: 5, AAA: 6, S: 8 }[type];
+    if (feimanStar) {
+      const coursewarePath = join(sourceRoot, `${lessonCode}-${feimanStar}star`, 'courseware.json');
+      try {
+        const courseware = JSON.parse(readFileSync(coursewarePath, 'utf8'));
+        const flow3 = (courseware.problem_source ?? []).find((item) => item.flow_id === 'flow_3');
+        const keys = stemImageKeys(flow3);
+        if (keys.length) {
+          const questions = Array.isArray(lesson?.feiman_data) ? lesson.feiman_data : [];
+          if (!questions.length) {
+            errors.push(
+              `${lesson?.number_mark}: 费曼源 ${lessonCode}-${feimanStar}star 的 flow_3 有 ${keys.length} 张题图，但 feiman_data 为空。`,
+            );
+          }
+          questions.forEach((item, i) => {
+            const have = httpUrlCount(item?.question);
+            if (have < keys.length) {
+              errors.push(
+                `${lesson?.number_mark}.feiman_data[${i}].question: 源题有 ${keys.length} 张图（${keys.join('、')}），` +
+                  `题面里只找到 ${have} 个 http(s) URL，本地有图必须写进 question。`,
+              );
+            }
+          });
+        }
+      } catch {
+        // 配星文件存在性已在上面检查；这里读不到 courseware.json 时不重复报。
+      }
     }
   });
 
-  const nextType = ORDER[payload.data.length];
-  if (nextType) {
-    const stars = STARS[nextType];
-    const missing = stars.filter((star) => !starExists(star));
-    if (missing.length === 0) {
-      errors.push(
-        `${lessonCode}-${nextType}: 配星目录 ${stars.map((s) => `${lessonCode}-${s}star`).join('、')} 都存在，` +
-          '配星齐全的班型不得漏传。',
-      );
-    } else {
-      notes.push(
-        `${nextType} 及其后的班型已丢弃：缺 ${missing.map((s) => `${lessonCode}-${s}star`).join('、')}。`,
-      );
-    }
-  }
-  for (const type of ORDER.slice(payload.data.length + 1)) {
-    const stars = STARS[type];
-    const missing = stars.filter((star) => !starExists(star));
-    notes.push(
-      missing.length
-        ? `${type} 已丢弃：缺 ${missing.map((s) => `${lessonCode}-${s}star`).join('、')}。`
-        : `${type} 已丢弃：配星齐全，但按连续前缀规则随前一个缺口一并丢弃。`,
-    );
+  for (const type of ORDER) {
+    if (readyTypes.includes(type)) continue;
+    const missing = missingFiles(STARS[type]);
+    notes.push(`${type} 已丢弃：缺 ${missing.join('、')}。`);
   }
 } else {
-  notes.push('未传 --source，跳过星级目录存在性核对（只校验了 data 内部的前缀顺序与配星齐全）。');
+  notes.push('未传 --source，跳过星级 courseware.json 存在性核对（只校验了班型排序与每班 lesson_data 配星形状）。');
 }
 
 for (const note of notes) {
@@ -285,5 +333,5 @@ if (errors.length > 0) {
 
 console.log(
   `\n✅ 硬性规则检查通过：${payload.data.length} 个班型（${types.join('→')}），` +
-    'learning_objective 齐全、question_type 全为 4、options_json 全为空、图片资源字段全为空。',
+    'learning_objective 齐全、question_type 全为 4、options_json 全为空、图片资源字段全为空，源题有图则题面已带 URL。',
 );
