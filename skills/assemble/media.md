@@ -62,7 +62,7 @@ PUT {cos_host}/{cos_key}  （Authorization + x-cos-security-token）
 - 文本阶段先**原样保留**源里的 `![说明](本地文件名)`，不要删图，也不要提前改成裸 URL。媒体阶段由 `fill-media.mjs` 上传后改成裸 URL。
 - 最终产物一律写**裸 URL**，不要残留 `![说明](URL)` 或本地文件名。
 - 本地图片必须上传：源题里出现的**每一张**图都要传，不是只传 `images[0]`。费曼以该班费曼星级 `courseware.json` 的 `flow_3.stem` 为准：stem 里的 `![说明](文件名)` 以及 `images[]` 中文件名也出现在 stem 里的项，全部进 `question`。只出现在 `answer_detail` 的解析图不要写进 `question`。
-- 本地文件优先从 `<星级>/problem/<文件名>` 取，其次 `<星级>/`、`<星级>/assets/`、`<星级>/courseware/assets/`、`<星级>/images/`，以及同课节 `*-homework/`、`*-quiz/`、`*-upgrade/`。不要用课件运行时装饰图（星星图标等），不要伪造 URL。
+- 本地文件优先从 `<星级>/problem/<文件名>` 取，其次 `<星级>/`、`<星级>/assets/`、`<星级>/courseware/assets/`、`<星级>/images/`，以及同课节 `*-homework/`、`*-upgrade/`（旧名 `*-quiz/` 也可）。不要用课件运行时装饰图（星星图标等），不要伪造 URL。
 - 源里已经是真实 HTTP 图（非 `example.com`）的，直接把那个 URL 写进正文。
 - 源题有图却找不到文件、或上传后没写进正文，视为组装失败，不得静默丢图。
 

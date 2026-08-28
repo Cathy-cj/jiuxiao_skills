@@ -76,8 +76,8 @@ function lessonSearchRoots(sourceRoot, lessonCode) {
   }
   roots.push(
     join(sourceRoot, `${lessonCode}-homework`),
-    join(sourceRoot, `${lessonCode}-quiz`),
     join(sourceRoot, `${lessonCode}-upgrade`),
+    join(sourceRoot, `${lessonCode}-quiz`),
   );
   return roots;
 }
@@ -142,7 +142,7 @@ async function uploadKeys(keys, sourceRoot, lessonCode, imageCache, missing, at)
     }
     const localPath = await findLocalImage(sourceRoot, lessonCode, key);
     if (!localPath) {
-      missing.push(`${at}: 找不到本地题图 ${key}（应在 <星级>/problem/ 或同课节 homework/quiz 目录）`);
+      missing.push(`${at}: 找不到本地题图 ${key}（应在 <星级>/problem/ 或同课节 homework/upgrade 目录）`);
       continue;
     }
     const url = await uploadLocalImage(localPath, imageCache);

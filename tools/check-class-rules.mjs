@@ -9,8 +9,10 @@
 //   5. begin_guide_data 只允许 tts_text、audio，不得写 main_title、sub_title
 //   6. 屏幕公式预览安全：不得出现 "<" 后接字母（空格也不行）、裸区间 "["、裸 "]$"、cases；
 //      表格只能是 $$ \begin{array}{|c|...|} \hline ... \end{array} $$，禁止 Markdown/HTML/tabular 表
+//   7. 带 --source 时：晋级赛源优先 <课节>-upgrade/*-upgrade.md，无该目录才读旧名 -quiz；
+//      配星范围内的题不得漏写，courseware_num 必须与 ## 课件 ID 逐字一致
 // 用法: node tools/check-class-rules.mjs <课节编码>/class.json [--source <课件根>]
-import { readFileSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import process from 'node:process';
 import {
@@ -244,6 +246,52 @@ function isFile(path) {
   }
 }
 
+function isDir(path) {
+  try {
+    return statSync(path).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+function listMarkdown(dir, suffix) {
+  try {
+    return readdirSync(dir)
+      .filter((name) => name.endsWith(suffix))
+      .map((name) => join(dir, name));
+  } catch {
+    return [];
+  }
+}
+
+function resolveUpgradeSources(sourceRoot, lessonCode) {
+  const upgradeDir = join(sourceRoot, `${lessonCode}-upgrade`);
+  if (isDir(upgradeDir)) {
+    return { label: 'upgrade', files: listMarkdown(upgradeDir, '-upgrade.md') };
+  }
+  const quizDir = join(sourceRoot, `${lessonCode}-quiz`);
+  if (isDir(quizDir)) {
+    return { label: 'quiz', files: listMarkdown(quizDir, '-quiz.md') };
+  }
+  return { label: null, files: [] };
+}
+
+function parseUpgradeQuestions(files) {
+  const questions = [];
+  for (const file of files) {
+    const text = readFileSync(file, 'utf8');
+    const blocks = text.split(/^# 晋级题\s*$/m).slice(1);
+    for (const block of blocks) {
+      const starRaw = block.match(/## 星级\s*\r?\n+([^\r\n#]+)/)?.[1] ?? '';
+      const star = Number(String(starRaw).match(/(\d+)/)?.[1]);
+      const coursewareNum = (block.match(/## 课件 ID\s*\r?\n+([^\r\n#]+)/)?.[1] ?? '').trim();
+      if (!star || !coursewareNum) continue;
+      questions.push({ star, coursewareNum });
+    }
+  }
+  return questions;
+}
+
 const { file, sourceRoot } = parseArgs(process.argv);
 if (!file) {
   console.error('用法: node tools/check-class-rules.mjs <课节编码>/class.json [--source <课件根>]');
@@ -465,6 +513,62 @@ if (sourceRoot) {
       }
     }
   });
+
+  const upgradeSource = resolveUpgradeSources(sourceRoot, lessonCode);
+  const upgradeQuestions = parseUpgradeQuestions(upgradeSource.files);
+  if (upgradeSource.label && upgradeSource.files.length === 0) {
+    notes.push(
+      `${lessonCode}: 找到 ${lessonCode}-${upgradeSource.label}/ 但没有 *-${upgradeSource.label}.md，跳过晋级赛源核对。`,
+    );
+  } else if (upgradeQuestions.length) {
+    payload.data.forEach((lesson, index) => {
+      const type = types[index];
+      const stars = STARS[type];
+      if (!stars) return;
+      const lessonNums = new Set(
+        (Array.isArray(lesson?.lesson_data) ? lesson.lesson_data : [])
+          .map((item) => item?.courseware_num)
+          .filter(Boolean),
+      );
+      const want = [
+        ...new Set(
+          upgradeQuestions
+            .filter((question) => stars.includes(question.star) && lessonNums.has(question.coursewareNum))
+            .map((question) => question.coursewareNum),
+        ),
+      ];
+      const week = Array.isArray(lesson?.week_question_data) ? lesson.week_question_data : [];
+      const got = week.map((item) => item?.courseware_num);
+      const gotSet = new Set(got.filter(Boolean));
+      const wantSet = new Set(want);
+      if (want.length && gotSet.size === 0) {
+        errors.push(
+          `${lesson?.number_mark}: 源 ${lessonCode}-${upgradeSource.label} 有配星范围内的晋级题（${want.join('、')}），` +
+            `但 week_question_data 为空。晋级赛目录名是 upgrade（旧名 quiz），不得漏写。`,
+        );
+        return;
+      }
+      for (const num of wantSet) {
+        if (!gotSet.has(num)) {
+          errors.push(
+            `${lesson?.number_mark}: week_question_data 缺少源 ${upgradeSource.label} Markdown 的 ## 课件 ID ${num}。`,
+          );
+        }
+      }
+      got.forEach((num, i) => {
+        const at = `${lesson?.number_mark}.week_question_data[${i}].courseware_num`;
+        if (!upgradeQuestions.some((question) => question.coursewareNum === num)) {
+          errors.push(
+            `${at} 必须与 ${upgradeSource.label} Markdown 的 ## 课件 ID 逐字一致，当前为 ${JSON.stringify(num)}。`,
+          );
+          return;
+        }
+        if (!wantSet.has(num)) {
+          errors.push(`${at} 不在本班配星范围或 lesson_data 中，当前为 ${JSON.stringify(num)}。`);
+        }
+      });
+    });
+  }
 
   for (const type of ORDER) {
     if (readyTypes.includes(type)) continue;

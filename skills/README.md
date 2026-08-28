@@ -11,7 +11,7 @@
 | 确认目录、编码和可读源 | [assemble/sources.md](assemble/sources.md) | 课节数据源清单 |
 | 写学习目标、核心方法与开场引导 | [assemble/courseware.md](assemble/courseware.md) | `learning_objective`、`core_method`、`begin_guide_data`、`lesson_data` |
 | 写费曼因果讲法稿与按星 `#` 挖空 | [assemble/feiman.md](assemble/feiman.md) | `feiman_data`、`feiman_guide_data` |
-| 组装晋级赛 | [assemble/quiz.md](assemble/quiz.md) | `week_question_data` |
+| 组装晋级赛 | [assemble/upgrade.md](assemble/upgrade.md) | `week_question_data` |
 | 组装课后作业 | [assemble/homework.md](assemble/homework.md) | `homework_data`、`homework_guide_data` |
 | 写任何 `tts_text` 的逐字稿 | [assemble/voice.md](assemble/voice.md) | 可直接合成的中文口播 |
 | 填音频 URL、把图片写进题面 | [assemble/media.md](assemble/media.md) | `audio`、`question` / `stem` 里的裸图 URL |
@@ -26,12 +26,12 @@
 
 ## 基本边界
 
-组装只读取当前课节已有的 `courseware.json`、`*-quiz/*.md`、`*-homework/*.md`；不读取 `plan.json`、`nodes[]`、`index.html`、`audio/`、`courseware/` 运行时文件；**不得创建或补写缺失的 `courseware.json`**。两个配星的 `courseware.json` 都在的班都要写入 `data`，前面缺班不能把后面配齐的班一起丢掉。所有 `tts_text` 都要合成语音播给学生听，写法统一按 [assemble/voice.md](assemble/voice.md)：阿拉伯数字、LaTeX、数学符号、单位缩写和直角引号「」一律写成中文读法。文本完成后调用 TTS 与 COS 上传：音频 URL 写入 `audio`，图片 URL 只以裸 URL 写进 `question` / `stem` 正文中它原本出现的位置，`image_url` 与 `stem_pic` 一律留空；源题有 `![说明](本地文件)` 的不得删图，由 `fill-media.mjs` 上传替换。禁止写 `example.com`。课节批量新增接口不由组装触发，只在用户明确要求提交时按 [assemble/submit.md](assemble/submit.md) 调用。
+组装只读取当前课节已有的 `courseware.json`、`*-upgrade/*.md`（无 upgrade 时才读旧名 `*-quiz/*.md`）、`*-homework/*.md`；不读取 `plan.json`、`nodes[]`、`index.html`、`audio/`、`courseware/` 运行时文件；**不得创建或补写缺失的 `courseware.json`**。两个配星的 `courseware.json` 都在的班都要写入 `data`，前面缺班不能把后面配齐的班一起丢掉。所有 `tts_text` 都要合成语音播给学生听，写法统一按 [assemble/voice.md](assemble/voice.md)：阿拉伯数字、LaTeX、数学符号、单位缩写和直角引号「」一律写成中文读法。文本完成后调用 TTS 与 COS 上传：音频 URL 写入 `audio`，图片 URL 只以裸 URL 写进 `question` / `stem` 正文中它原本出现的位置，`image_url` 与 `stem_pic` 一律留空；源题有 `![说明](本地文件)` 的不得删图，由 `fill-media.mjs` 上传替换。禁止写 `example.com`。课节批量新增接口不由组装触发，只在用户明确要求提交时按 [assemble/submit.md](assemble/submit.md) 调用。
 
 三条硬性校验必须全部通过才算组装完成：
 
 ```text
-node tools/check-class-rules.mjs <课节编码>/class.json --source <课件根>   # 班型取舍（配齐必传、配不齐禁传、禁止造课件）、每班非空 learning_objective、begin_guide_data 不含 main_title/sub_title、question_type 仅为 1/4、type=1 时 options_json 合法、图片字段留空、源题有图则题面必须带 URL、屏幕公式预览安全（无「< 后接字母」、无裸 $[a,b]$ / 裸 ]$、无 cases、表格仅为 $$ array $$）
+node tools/check-class-rules.mjs <课节编码>/class.json --source <课件根>   # 班型取舍（配齐必传、配不齐禁传、禁止造课件）、每班非空 learning_objective、begin_guide_data 不含 main_title/sub_title、question_type 仅为 1/4、type=1 时 options_json 合法、图片字段留空、源题有图则题面必须带 URL、屏幕公式预览安全（无「< 后接字母」、无裸 $[a,b]$ / 裸 ]$、无 cases、表格仅为 $$ array $$）、晋级赛源优先 upgrade（无该目录才读旧名 quiz）、courseware_num 与 ## 课件 ID 一致
 node tools/check-feiman-answer.mjs <课节编码>/class.json                  # 费曼 answer 的按星挖空、因果链与 LaTeX
 node tools/check-tts-voice.mjs <课节编码>/class.json                      # 三类 tts_text 逐字稿
 ```

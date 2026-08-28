@@ -1,6 +1,6 @@
 ---
 name: assemble-class-json
-description: Assembles one lesson folder into a five-level class.json Body when courseware, quiz, and homework source files are available.
+description: Assembles one lesson folder into a five-level class.json Body when courseware, upgrade, and homework source files are available.
 ---
 
 # Assemble：课节 class.json 入口
@@ -11,7 +11,7 @@ description: Assembles one lesson folder into a five-level class.json Body when 
 
 ## 输入
 
-- 一个课节编码及 `C:\math\测试用课件\` 下与它同前缀的星级、quiz、homework 文件夹；
+- 一个课节编码及 `C:\math\测试用课件\` 下与它同前缀的星级、upgrade、homework 文件夹；
 - `c:\math\class\README.md` 的字段表和 Body `//` 注释；
 - `c:\math\class\class示例.json` 的键形状和键顺序；
 - 本目录指定的分册。
@@ -39,7 +39,7 @@ description: Assembles one lesson folder into a five-level class.json Body when 
 ../README.md → schema.md → sources.md → courseware.md
 ```
 
-之后总是读 `feiman.md`；当前课节存在 `*-quiz/*.md` 时读 `quiz.md`，存在 `*-homework/*.md` 时读 `homework.md`。凡是要写 `tts_text` 的环节（开场、费曼引导、作业引导）都先读 `voice.md`。写出文本后读 `media.md`。用户明确要求提交时才读 `submit.md`。分册仅为本入口服务，不再向更深层规则跳转。
+之后总是读 `feiman.md`；当前课节存在 `*-upgrade/*.md` 或旧名 `*-quiz/*.md` 时读 `upgrade.md`，存在 `*-homework/*.md` 时读 `homework.md`。凡是要写 `tts_text` 的环节（开场、费曼引导、作业引导）都先读 `voice.md`。写出文本后读 `media.md`。用户明确要求提交时才读 `submit.md`。分册仅为本入口服务，不再向更深层规则跳转。
 
 ## 工作顺序
 
@@ -47,7 +47,7 @@ description: Assembles one lesson folder into a five-level class.json Body when 
 2. 读取 `schema.md`，先按「班型取舍」定下这次上传哪几个班型（每个班只看自己的两份 `courseware.json` 是否都在），再建立这些班型的固定键、键顺序、空值和配星集合。没有任何班配齐则停止，不写产物。
 3. 按 `courseware.md` 填每班的 `lesson_data`、`learning_objective`、`core_method` 和 `begin_guide_data`。
 4. 按 `feiman.md` 为每班填 `feiman_data` 与 `feiman_guide_data`。
-5. 当前课节有相应 Markdown 时，按 `quiz.md`、`homework.md` 填题目和引导；没有时填字段规定的空值。
+5. 当前课节有相应 Markdown 时，按 `upgrade.md`、`homework.md` 填题目和引导；没有时填字段规定的空值。
 6. 按 `schema.md` 组装顶层对象并写出目标 `class.json`。
 7. 按 `voice.md` 逐条复核三类 `tts_text`，运行 `node tools/check-tts-voice.mjs <课节编码>/class.json`。
 8. 按 `media.md` 运行 `node tools/fill-media.mjs <课节编码>/class.json --source <课件根>`：写回三类引导音频，清空三个图片资源字段，并把源题里的本地图全部上传，自动把裸 URL 写进 `question` / `stem` / `analysis` 原位置。
@@ -55,11 +55,11 @@ description: Assembles one lesson folder into a five-level class.json Body when 
 
 ## 与相邻阶段边界
 
-上游只有课节源文件；本阶段不制作、不修订、不补写课件、quiz、homework，也不得为缺失星级生成 `courseware.json`。媒体阶段只调用 TTS 与 COS 上传。提交课节批量新增是本阶段之后的独立动作，须由用户明确发起，规则见 [submit.md](submit.md)。
+上游只有课节源文件；本阶段不制作、不修订、不补写课件、upgrade、homework，也不得为缺失星级生成 `courseware.json`。媒体阶段只调用 TTS 与 COS 上传。提交课节批量新增是本阶段之后的独立动作，须由用户明确发起，规则见 [submit.md](submit.md)。
 
 ## 当前实现边界
 
-文本组装仍由 Agent 按分册完成。TTS、COS 签名与直传已落在 `tools/tts.mjs`、`tools/upload-image.mjs`、`tools/fill-media.mjs`；硬性校验落在 `tools/check-class-rules.mjs`（班型取舍、每班非空 `learning_objective`、`begin_guide_data` 不含 `main_title`/`sub_title`、`question_type` 仅为 `1`/`4`、`question_type=1` 时 `options_json` 合法且 `type=2` 的 `content` 为图片 URL、图片字段留空、源题有图则题面必须带 http(s) URL、屏幕公式无「`<` 后接字母」、无裸 `$[a,b]$`、无 `cases`、表格仅为规定的 `$$ array $$`）、`tools/check-feiman-answer.mjs`（按星挖空、因果链与 LaTeX）、`tools/check-tts-voice.mjs`（逐字稿）。文本阶段保留源题的 `![说明](本地文件)`；`fill-media.mjs` 负责上传并写回裸 URL（作业选择题的选项图写进 `options_json` 的 `content`）。课节批量新增接口地址与 key 见 [submit.md](submit.md)，尚无封装工具，需手工 POST；未真正收到 `lesson_id_list` 前，不能声称已入库。
+文本组装仍由 Agent 按分册完成。TTS、COS 签名与直传已落在 `tools/tts.mjs`、`tools/upload-image.mjs`、`tools/fill-media.mjs`；硬性校验落在 `tools/check-class-rules.mjs`（班型取舍、每班非空 `learning_objective`、`begin_guide_data` 不含 `main_title`/`sub_title`、`question_type` 仅为 `1`/`4`、`question_type=1` 时 `options_json` 合法且 `type=2` 的 `content` 为图片 URL、图片字段留空、源题有图则题面必须带 http(s) URL、屏幕公式无「`<` 后接字母」、无裸 `$[a,b]$`、无 `cases`、表格仅为规定的 `$$ array $$`、晋级赛源优先 `*-upgrade/`（无该目录才读旧名 `*-quiz/`）、`week_question_data.courseware_num` 与 `## 课件 ID` 逐字一致）、`tools/check-feiman-answer.mjs`（按星挖空、因果链与 LaTeX）、`tools/check-tts-voice.mjs`（逐字稿）。文本阶段保留源题的 `![说明](本地文件)`；`fill-media.mjs` 负责上传并写回裸 URL（作业选择题的选项图写进 `options_json` 的 `content`）。课节批量新增接口地址与 key 见 [submit.md](submit.md)，尚无封装工具，需手工 POST；未真正收到 `lesson_id_list` 前，不能声称已入库。
 
 ## 交付前自检
 
@@ -73,7 +73,7 @@ description: Assembles one lesson folder into a five-level class.json Body when 
 □ 每个写进 data 的班型都有非空 learning_objective，紧挨 number_mark 之后，句式为「理解…，学会…。」，内容只来自该班两份 courseware.json
 □ 每个写进 data 的 begin_guide_data 仅含 tts_text 与 audio，无 main_title、sub_title；tts_text 完全相同，均为 2–3 句、100–150 字，且只称呼“同学”
 □ 三类 tts_text 均通过 check-tts-voice.mjs：无阿拉伯数字、LaTeX、数学符号、单位缩写、直角引号「」
-□ 每条 week_question_data.courseware_num 与对应 quiz Markdown 的 ## 课件 ID 逐字一致
+□ 每条 week_question_data.courseware_num 与对应 upgrade Markdown 的 ## 课件 ID 逐字一致
 □ 每条 feiman_data.answer 是课件讲法的因果复述，按费曼星级挖空（2–3星1处、4–5星2处、6–8星3处），含「因为…所以…；又因为…所以…」，去标记后不超过 500 字且与 question 不同
 □ feiman_data.answer 的数学公式都写成 $…$ 的 LaTeX，公式挖空写成 #$…$#，无裸运算符、无旧式 ##、无人称称呼与套话
 □ 题干、解析、费曼稿：字母前的 "<" 已改成 \lt，区间已写成 \left[ / \right]，无裸 "$[a,b]$" / 裸 "]$"，无 \begin{cases} / \{ 联立；表格仅为 $$\begin{array}{|c|…|}\hline … \end{array}$$

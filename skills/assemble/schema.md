@@ -62,7 +62,7 @@ homework_guide_data
 - 没有任何班两份 `courseware.json` 都在时，**停止组装、不写 `class.json`**，在交付摘要里点名缺哪些文件。
 - 被丢弃的班型要在交付摘要里逐条点名：班型、缺哪份 `courseware.json`。
 
-该规则由 `node tools/check-class-rules.mjs <课节编码>/class.json [--source <课件根>]` 硬性校验：不带 `--source` 校验班型按 B→S 排序、不重复、且每班 `lesson_data` 配星齐全；带 `--source` 时以磁盘上的 `courseware.json` 为准，配齐的班不得漏传，配不齐的班不得出现。
+该规则由 `node tools/check-class-rules.mjs <课节编码>/class.json [--source <课件根>]` 硬性校验：不带 `--source` 校验班型按 B→S 排序、不重复、且每班 `lesson_data` 配星齐全；带 `--source` 时以磁盘上的 `courseware.json` 为准，配齐的班不得漏传，配不齐的班不得出现；晋级赛 Markdown 优先读 `<课节编码>-upgrade/`，无该目录才读旧名 `-quiz/`，`week_question_data.courseware_num` 必须与 `## 课件 ID` 逐字一致，配星范围内的题不得因目录名叫 upgrade 而漏写。
 
 ## 子对象形状
 

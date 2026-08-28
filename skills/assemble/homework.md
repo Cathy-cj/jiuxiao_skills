@@ -51,4 +51,4 @@
 
 有作业时写 `homework_guide_data`，它是做题前的开始引导，不是答案后的结束语。`tts_text` 用“同学”，不得用“同学们”，并提示先审题、选择方法或列式；它是逐字口播稿，写法按 [voice.md](voice.md)：不逐字读题干，需要提到题目里的量时用名字说，念数写中文读法，禁用阿拉伯数字、算式符号、单位缩写和直角引号「」；`audio` 在文本阶段先写 `""`，媒体阶段写入 TTS 返回的 URL。没有本班作业时写 `homework_guide_data=null`。
 
-本分册只处理 homework Markdown，不从课件或 quiz 补题、补解析或生成选项。
+本分册只处理 homework Markdown，不从课件或 upgrade 补题、补解析或生成选项。

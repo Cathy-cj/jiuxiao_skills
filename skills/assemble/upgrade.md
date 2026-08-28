@@ -1,8 +1,8 @@
-# 从 quiz Markdown 生成晋级赛
+# 从 upgrade Markdown 生成晋级赛
 
 ## 读取和切块
 
-只读取当前课节 `<课节编码>-quiz/` 下的 `*-quiz.md`。每道题按以下连续块解析：
+只读取当前课节 `<课节编码>-upgrade/` 下的 `*-upgrade.md`。每道题按以下连续块解析：
 
 ```text
 # 晋级题
@@ -13,6 +13,8 @@
 ## 答案
 ## 解析
 ```
+
+若 `*-upgrade/` 不存在，才回退读取旧名 `<课节编码>-quiz/` 下的 `*-quiz.md`。两者都在时只用 upgrade，不得混读、不得因目录仍叫 quiz 就跳过晋级赛。
 
 `## 课件 ID` 是晋级赛的 `courseware_num` 真源。不得以父目录编码和星级重新拼接，也不得改正或替换 Markdown 中的值。
 
@@ -41,4 +43,4 @@
 - 不在配星范围、缺少对应星级目录、或 `lesson_data` 无同名课件的题目都丢弃。
 - 交付时逐条列明被丢弃的题目、星级和原因；不改写题目以凑齐晋级赛。
 
-本分册只读取 quiz Markdown，绝不从 `courseware.json`、作业 Markdown 或课件运行时补充晋级题内容。
+本分册只读取 upgrade Markdown（无 upgrade 时才读旧名 quiz），绝不从 `courseware.json`、作业 Markdown 或课件运行时补充晋级题内容。
