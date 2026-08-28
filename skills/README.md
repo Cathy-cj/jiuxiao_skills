@@ -31,7 +31,7 @@
 三条硬性校验必须全部通过才算组装完成：
 
 ```text
-node tools/check-class-rules.mjs <课节编码>/class.json --source <课件根>   # 班型取舍（配齐必传、配不齐禁传、禁止造课件）、每班非空 learning_objective、begin_guide_data 不含 main_title/sub_title、question_type=4、options_json=""、图片字段留空、源题有图则题面必须带 URL、屏幕公式预览安全（无「< 后接字母」、无裸 $[a,b]$ / 裸 ]$、无 array）
+node tools/check-class-rules.mjs <课节编码>/class.json --source <课件根>   # 班型取舍（配齐必传、配不齐禁传、禁止造课件）、每班非空 learning_objective、begin_guide_data 不含 main_title/sub_title、question_type 仅为 1/4、type=1 时 options_json 合法、图片字段留空、源题有图则题面必须带 URL、屏幕公式预览安全（无「< 后接字母」、无裸 $[a,b]$ / 裸 ]$、无 cases、表格仅为 $$ array $$）
 node tools/check-feiman-answer.mjs <课节编码>/class.json                  # 费曼 answer 的按星挖空、因果链与 LaTeX
 node tools/check-tts-voice.mjs <课节编码>/class.json                      # 三类 tts_text 逐字稿
 ```

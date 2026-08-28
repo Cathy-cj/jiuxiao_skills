@@ -49,7 +49,9 @@ PUT {cos_host}/{cos_key}  （Authorization + x-cos-security-token）
 
 图片一律写进题目正文里它**原本出现的地方**：`feiman_data[].question`、`homework_data[].question`、`week_question_data[].stem`。
 
-- **选项带图**：URL 直接跟在选项标号后面，一行一个。
+- **选项带图**：
+  - 作业选择题（`question_type=1`）：图片 URL 写入 `options_json` 对应项的 `content`，该项 `type=2`，不要只把图留在 `question` 的 A/B 行。
+  - 费曼题、晋级赛：URL 直接跟在选项标号后面，一行一个。
 
   ```text
   A．https://…/opt-a.png
@@ -74,4 +76,4 @@ node tools/upload-image.mjs --file <本地图片>
 node tools/fill-media.mjs <课节编码>/class.json --source <课件根>
 ```
 
-`fill-media.mjs` 会遍历当前课节 JSON：合成并写回三类引导音频；把三个图片资源字段强制清空为 `""`；把题面里的 `![说明](本地文件)` 全部上传到 COS，并**自动**把返回的裸 URL 写回 `question` / `stem` / `analysis` 原位置。选项只有标号、图被删掉时，会按源 stem 的 A/B/C/D 顺序把 URL 补回去。找不到本地文件或补不进正文时直接失败。
+`fill-media.mjs` 会遍历当前课节 JSON：合成并写回三类引导音频；把三个图片资源字段强制清空为 `""`；把题面里的 `![说明](本地文件)` 全部上传到 COS，并**自动**把返回的裸 URL 写回 `question` / `stem` / `analysis` 原位置。作业选择题 `options_json` 里 `type=2` 或仍是本地图的选项，会把裸 URL 写进该项 `content`。费曼/晋级赛选项只有标号、图被删掉时，会按源 stem 的 A/B/C/D 顺序把 URL 补回去。找不到本地文件或补不进正文时直接失败。

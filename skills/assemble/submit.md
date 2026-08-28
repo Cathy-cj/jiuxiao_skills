@@ -104,6 +104,6 @@ POST https://test-jx-admin-api.zmexing.com/v1/aimathclass/external/lesson/batch/
 □ 提交副本的 key 已替换为真值，课节产物里的 key 仍是 auth_****key
 □ is_release 为 false；置 true 有用户明确指令
 □ data 只含配星齐全的班型，按 B→A→AA→AAA→S 排序（允许缺口），number_mark 本批无重复
-□ check-class-rules.mjs 已通过（班型取舍、question_type=4、options_json=""、图片字段留空）
+□ check-class-rules.mjs 已通过（班型取舍、question_type 仅为 1/4、type=1 时 options_json 合法、图片字段留空）
 □ 已记录返回的 traceId 与 number_mark → lesson_id 对照
 ```

@@ -29,7 +29,7 @@
 
 `standard_answer` 必须写入；即使 `class示例.json` 漏了这个键，字段表仍将其定义为必填。
 
-`stem`、`analysis` 写入前按 [schema.md](schema.md)「屏幕公式」改写：字母前的 `<` 改成 `\lt`，区间写成 `\left[` / `\right]`，拆掉 `\begin{array}` / `\{` 联立。`## 课件 ID` 仍逐字照抄，不得改。
+`stem`、`analysis` 写入前按 [schema.md](schema.md)「屏幕公式」改写：字母前的 `<` 改成 `\lt`，区间写成 `\left[` / `\right]`，联立拆掉 `\begin{cases}` / `\{`，表格改写成规定的 `$$\begin{array}{|c|…|}\hline … \end{array}$$`。`## 课件 ID` 仍逐字照抄，不得改。
 
 题目带图时，`stem_pic` 仍留空。源 Markdown 题目或解析里的 `![说明](本地文件)` 必须原样保留进 `stem` / `analysis`，媒体阶段再按 [media.md](media.md) 上传并换成裸 URL。不得因为还不是 http URL 就删图。`stem_pic` 为空由 `node tools/check-class-rules.mjs` 硬性校验。
 

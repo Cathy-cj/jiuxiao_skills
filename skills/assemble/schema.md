@@ -8,8 +8,8 @@
 
 1. `c:\math\class\README.md` 的 Body 字段表：键名、类型、必填和空值；
 2. 同一 README 的请求 Body `//` 注释：不填、必须填和配星；
-3. 本 Skills 的明确业务规则。它覆盖 README 的四处：费曼 `answer` 为课件讲法的因果复述加按星 `#` 挖空（覆盖“在题干中挖空”）、`homework_data.question_type` 恒为 `4`（覆盖按题型分流）、图片资源字段恒为 `""`（覆盖“把图 URL 填进 image_url / stem_pic”）、屏幕公式须改写成后台 Markdown 预览可渲染的写法（覆盖“解析照抄源 Markdown”）；
-4. `c:\math\class\class示例.json`：键集合的嵌套形状及键顺序。它是按本 SOP 现行规则实产的 `W1-L5L6-1`（只有 B、A、AA 三个班型，每个班型都有 `learning_objective`，`question_type` 全为 `4`、`options_json` 全为空、图片资源字段全为空、费曼 `answer` 用 `#` 挖空、媒体 URL 为真实地址），形状和取值都可参照，但**内容不得照抄进任何课节产物**；
+3. 本 Skills 的明确业务规则。它覆盖 README 的四处：费曼 `answer` 为课件讲法的因果复述加按星 `#` 挖空（覆盖“在题干中挖空”）、`homework_data.question_type` 仅能为 `1`（有选项的选择题）或 `4`（其余题）（覆盖接口枚举里的 2/3/5）、图片资源字段恒为 `""`（覆盖“把图 URL 填进 image_url / stem_pic”）、屏幕公式须改写成后台 Markdown 预览可渲染的写法（覆盖“解析照抄源 Markdown”）；
+4. `c:\math\class\class示例.json`：键集合的嵌套形状及键顺序。它是按本 SOP 现行规则实产的 `W1-L5L6-1`（只有 B、A、AA 三个班型，每个班型都有 `learning_objective`，作业有选项则为 `question_type=1` 并填写 `options_json`、无选项则为 `4` 且 `options_json=""`、图片资源字段全为空、费曼 `answer` 用 `#` 挖空、媒体 URL 为真实地址），形状和取值都可参照，但**内容不得照抄进任何课节产物**；
 5. 禁止照抄 README“完整调用示例”：开场误用“同学们”，字段集合也可能过时。`learning_objective` 以本分册和 `class示例.json` 的 B 班句式为准，内容必须按 [courseware.md](courseware.md) 从该班 `courseware.json` 生成。
 
 ## 顶层与班型
@@ -78,7 +78,7 @@ homework_guide_data
 
 - `number_mark`：写进 `data` 的班型各写 `<课节编码>-B`、`-A`、`-AA`、`-AAA`、`-S`；
 - `is_release` 始终为 `false`；
-- `homework_data[].question_type` **恒为 `4`**，不按题型分流；`options_json` **恒为 `""`**，带选项的题把选项留在 `question` 正文里，详见 [homework.md](homework.md)；
+- `homework_data[].question_type` **仅能为 `1`（单选）或 `4`（应用题）**：源题有 `A．`/`B．` 选项则为 `1` 并填写 `options_json`，其余题为 `4` 且 `options_json=""`；`options_json` 的 `type=1` 时 `content` 为文字，`type=2` 时 `content` 为图片链接，详见 [homework.md](homework.md)；
 - **图片资源字段恒为 `""`**：`feiman_data[].image_url`、`homework_data[].image_url`、`week_question_data[].stem_pic` 一律留空，图片只以裸 URL 写在 `question` / `stem` 正文中它原本出现的位置，详见 [media.md](media.md)；
 - 无数据数组写 `[]`；无数据对象写 `null`；无音频写 `""`；
 - 有 `tts_text` 时，`audio` 必须写成 TTS 返回的 URL，禁止 `example.com`；
@@ -87,12 +87,28 @@ homework_guide_data
 
 ## 屏幕公式（后台 Markdown 预览）
 
-管理后台的题干/解析预览先走 Markdown 和 HTML，再渲染 `$...$`。源课件里的联立 `array`、`<` 后接字母、裸写 `$[-2,3]$` 会被当成标签或链接，预览里出现 `forall`、`frac12`、`leq`、红字 `\[-2,3\]`、整段解析被吃掉。入库前必须改写，**数学含义不变**。该规则覆盖“解析照抄源 Markdown”，由 `check-class-rules.mjs` 硬性校验。
+管理后台的题干/解析预览先走 Markdown 和 HTML，再渲染 `$...$` / `$$...$$`。源课件里的联立 `cases`、行内 `$` 包裹的 `array`、Markdown 管道表、`<` 后接字母、裸写 `$[-2,3]$` 会被当成标签或链接，预览里出现 `forall`、`frac12`、`leq`、红字 `\[-2,3\]`、表线错乱、整段解析被吃掉。入库前必须改写，**数学含义不变**。该规则覆盖“解析照抄源 Markdown”，由 `check-class-rules.mjs` 硬性校验。
 
 适用字段：`week_question_data` 的 `stem` / `analysis` / `standard_answer`、`homework_data` 的 `question` / `answer` / `analysis`、`feiman_data` 的 `question` / `answer`。
 
 - **比较符用 `\lt`，不要写 `<` 再接字母**：`$0<m$`、`$0 < m$`、`$g(1) < g(t)$` 一律改成 `$0\lt m$`、`$g(1)\lt g(t)$`。空格救不了：`<` 后即使隔开仍是字母时，后台会当成未闭合 HTML 标签，后面的 `\leq`、`\frac`、`\left` 会被剥掉。`<` 后是数字（`$m < 0$`）一般能过，但比较对象是字母时必须 `\lt`。
 - **区间方括号必须 `\left[` / `\right]`**：禁止 `$[-2,3]$`、`$m\in [0,12]$`、`$[0,+\infty )$`。Markdown 会把 `[…]` 当成链接，变成 `\[-2,3\]`，KaTeX 再把 `\[` `\]` 当成行间公式，中间标红。写成 `$\left[-2,3\right]$`、`$m\in \left[0,12\right]$`。半开区间不要以裸 `]$` 收尾，写成 `$\left(-1,\frac{5}{4}\right]$` 或 `$\left(-1,\frac{5}{4}\right\rbrack$`。`$\sqrt[3]{8}$` 这类命令可选参数里的 `[` 可以保留。
-- **禁止行内 `$...$` 包裹 `\begin{array}`、`\begin{cases}`、`\{` 联立**。拆成「同时满足 $m>0$ 且 $\Delta={m}^{2}-12m\leq 0$」。
+- **联立禁止 `\begin{cases}`、行内 `$...$` 里的 `\begin{array}`、`\{` 联立**。拆成「同时满足 $m>0$ 且 $\Delta={m}^{2}-12m\leq 0$」。
+- **所有表格只能写成下面这种 `$$ array $$`，禁止 Markdown 管道表、HTML `<table>`、`tabular`。** 必须用 `$$`（不能用行内 `$`），列格式 `{|c|c|…|c|}`，每行前后都有 `\hline`，汉字放进 `\text{…}`。源题是别的表格式样时改写成此形，不得为了保真原样入库。该规则由 `check-class-rules.mjs` 硬性校验。
+
+```latex
+$$
+\begin{array}{|c|c|c|c|c|}
+\hline
+\text{视力} & 5.0\text{及以上} & 4.7\sim 4.9 & 4.3\sim 4.6 & 4.2\text{及以下} \\
+\hline
+2025\text{年人数} & 20 & 10 & 9 & 3 \\
+\hline
+2026\text{年人数} & 15 & 8 & 12 & 7 \\
+\hline
+\end{array}
+$$
+```
+
 - JSON 文件里反斜杠按标准转义（磁盘上看到 `\\geq` 是对的）；解析后的字符串只能有一个 `\`。不要再手写一层 `\\forall`。
-- 改写只动公式标记和联立排版，不得改得数、选项或推理结论。
+- 改写只动公式标记、表格标记和联立排版，不得改得数、选项或推理结论。

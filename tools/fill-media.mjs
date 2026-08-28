@@ -5,8 +5,10 @@ import { synthesizeAudio } from './tts.mjs';
 import { uploadImageFile } from './upload-image.mjs';
 import {
   collectImageKeys,
+  extractMarkdownImages,
   fileKey,
   httpUrlCount,
+  isHttpUrl,
   leftoverLocalImages,
   optionImagesFromStem,
   spliceOptionUrls,
@@ -190,6 +192,54 @@ async function fillFieldImages({ text, extraKeys = [], extraStem = '', sourceRoo
   return { text: next, uploaded: urlByFile.size };
 }
 
+function firstImageUrl(text, urlByFile) {
+  const markdown = extractMarkdownImages(text);
+  if (markdown[0] && isHttpUrl(markdown[0].src)) return markdown[0].src;
+  const match = String(text ?? '').match(/https?:\/\/[^\s)]+/i);
+  if (match) return match[0];
+  for (const url of urlByFile.values()) {
+    if (url) return url;
+  }
+  return '';
+}
+
+async function fillHomeworkOptionsJson({ optionsJson, sourceRoot, lessonCode, imageCache, missing, at }) {
+  let options;
+  try {
+    options = JSON.parse(optionsJson);
+  } catch {
+    return optionsJson;
+  }
+  if (!Array.isArray(options)) return optionsJson;
+
+  for (const [index, option] of options.entries()) {
+    if (!option || typeof option.content !== 'string') continue;
+    const filled = await fillFieldImages({
+      text: option.content,
+      sourceRoot,
+      lessonCode,
+      imageCache,
+      missing,
+      at: `${at}[${index}].content`,
+    });
+    let content = filled.text.trim();
+    const imageUrl = firstImageUrl(content, new Map());
+    if (option.type === 2 || imageUrl) {
+      const url = imageUrl || content;
+      if (isHttpUrl(url)) {
+        option.type = 2;
+        option.content = url;
+        continue;
+      }
+    }
+    option.content = content;
+    leftoverLocalImages(option.content).forEach((img) => {
+      missing.push(`${at}[${index}].content 仍有未替换的本地图：${img.src}`);
+    });
+  }
+  return JSON.stringify(options);
+}
+
 async function fillMedia(classJsonPath, sourceRoot) {
   const absolute = resolve(classJsonPath);
   const payload = JSON.parse(await readFile(absolute, 'utf8'));
@@ -291,6 +341,16 @@ async function fillMedia(classJsonPath, sourceRoot) {
         at: `${at}.analysis`,
       });
       item.analysis = analysisFilled.text;
+      if (item.question_type === 1 && item.options_json) {
+        item.options_json = await fillHomeworkOptionsJson({
+          optionsJson: item.options_json,
+          sourceRoot,
+          lessonCode,
+          imageCache,
+          missing,
+          at: `${at}.options_json`,
+        });
+      }
       report.push(`${at}.image_url=""`);
     }
   }

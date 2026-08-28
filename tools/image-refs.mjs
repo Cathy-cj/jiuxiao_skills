@@ -110,6 +110,43 @@ export function optionImagesFromStem(stem, urlByFile) {
   return result;
 }
 
+export function optionKey(letter) {
+  return String(letter)
+    .replace(/[Ａ-Ｈ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xff21 + 65))
+    .toUpperCase();
+}
+
+export function extractChoiceOptions(text) {
+  const options = [];
+  const seen = new Set();
+  for (const rawLine of String(text ?? '').split(/\n/)) {
+    const chunks = rawLine.includes('　')
+      ? rawLine.split(/　+/).filter(Boolean)
+      : [rawLine];
+    for (const chunk of chunks) {
+      const match = chunk.trim().match(OPTION_LINE);
+      if (!match) continue;
+      const key = optionKey(match[1]);
+      if (!/^[A-H]$/.test(key) || seen.has(key)) continue;
+      seen.add(key);
+      options.push({ key, content: match[2].trim() });
+    }
+  }
+  return options;
+}
+
+export function hasChoiceOptions(text) {
+  return extractChoiceOptions(text).length >= 2;
+}
+
+export function isImageOptionContent(content) {
+  const value = String(content ?? '').trim();
+  if (!value) return false;
+  if (extractMarkdownImages(value).length) return true;
+  if (isHttpUrl(value)) return true;
+  return /\.(?:png|jpe?g|gif|webp|svg)$/i.test(fileKey(value));
+}
+
 export function spliceOptionUrls(question, optionImages) {
   if (!optionImages.length) return String(question ?? '');
   const lines = String(question ?? '').split('\n');

@@ -48,14 +48,14 @@
             },
             "homework_data": [
                 {
-                    "question": "函数 $y=\\frac{\\sqrt{4-{2}^{x}}}{x+1}$ 的定义域是（ ）\n\nA．$\\left(-1,2\\right)$\nB．$\\left[2,+\\infty \\right)$\nC．$\\left(-\\infty ,-1\\right)\\cup \\left(-1,2\\right]$\nD．$\\left(-\\infty ,-1\\right)\\cup \\left(2,+\\infty \\right)$",
+                    "question": "函数 $y=\\frac{\\sqrt{4-{2}^{x}}}{x+1}$ 的定义域是（ ）",
                     "answer": "C",
                     "analysis": "由于偶次根号下的被开方数非负，则$4-{2}^{x}\\geq 0$，即${2}^{x}\\leq 4={2}^{2}$，\n\n因为$y={2}^{x}$是增函数，解得$x\\leq 2$；\n\n另外，由分母不为零得$x+1\\neq 0$，解得$x\\neq -1$.\n\n综上，定义域为$(-\\infty ,-1)\\cup \\left(-1,2\\right]$",
                     "image_url": "",
-                    "question_type": 4,
+                    "question_type": 1,
                     "star": 3,
                     "question_source": "AI数学课题库",
-                    "options_json": ""
+                    "options_json": "[{\"key\":\"A\",\"content\":\"$\\\\left(-1,2\\\\right)$\",\"type\":1},{\"key\":\"B\",\"content\":\"$\\\\left[2,+\\\\infty \\\\right)$\",\"type\":1},{\"key\":\"C\",\"content\":\"$\\\\left(-\\\\infty ,-1\\\\right)\\\\cup \\\\left(-1,2\\\\right]$\",\"type\":1},{\"key\":\"D\",\"content\":\"$\\\\left(-\\\\infty ,-1\\\\right)\\\\cup \\\\left(2,+\\\\infty \\\\right)$\",\"type\":1}]"
                 }
             ],
             "homework_guide_data": {
@@ -110,14 +110,14 @@
             },
             "homework_data": [
                 {
-                    "question": "(多选)已知函数$f(x)=\\sqrt{m{x}^{2}-mx+3}$，则下列选项正确的是（ ）\n\nA．若$f(x)$的定义域为$R$，则$m\\in \\left[0,12\\right]$\nB．若$f(x)$的定义域为$\\left[-2 ,3\\right]$，则$m=-\\frac{1}{2}$\nC．若$f(x)$的值域为$\\left[0,+\\infty \\right)$，则$m\\in (12,+\\infty )$\nD．若$f(x)$在$(\\frac{1}{2},+\\infty )$上单调递增，则$m\\in (0,+\\infty )$",
+                    "question": "(多选)已知函数$f(x)=\\sqrt{m{x}^{2}-mx+3}$，则下列选项正确的是（ ）",
                     "answer": "AB",
                     "analysis": "对于A，由$f(x)$的定义域为$R$，得对任意$x\\in R$都有$m{x}^{2}-mx+3\\geq 0$成立，\n\n当$m=0$时，$3\\geq 0$成立，则$m=0$；\n\n当$m\\neq 0$时，需同时满足$m>0$且$\\Delta ={m}^{2}-12m\\leq 0$，解得$0 \\lt m\\leq 12$，因此$0\\leq m\\leq 12$，A正确；\n\n对于B，由$f(x)$的定义域为$\\left[-2,3\\right]$，得$\\left[-2,3\\right]$是不等式$m{x}^{2}-mx+3\\geq 0$的解集，\n\n则$m < 0$，且$-2,3$为方程$m{x}^{2}-mx+3=0$的两根，$-2\\times 3=\\frac{3}{m}$，解得$m=-\\frac{1}{2}$，B正确；\n\n对于C，由$f(x)$的值域为$\\left[0,+\\infty \\right)$，得函数$y=m{x}^{2}-mx+3$的值域包含$\\left[0,+\\infty \\right)$，\n\n则需同时满足$m>0$且$\\Delta ={m}^{2}-12m\\geq 0$，解得$m\\geq 12$，C错误；\n\n对于D，由$f(x)$在$(\\frac{1}{2},+\\infty )$上单调递增，得需同时满足$m>0$且$3-\\frac{1}{4}m\\geq 0$，解得$0 \\lt m\\leq 12$，D错误.\n\n故选：AB",
                     "image_url": "",
-                    "question_type": 4,
+                    "question_type": 1,
                     "star": 4,
                     "question_source": "AI数学课题库",
-                    "options_json": ""
+                    "options_json": "[{\"key\":\"A\",\"content\":\"若$f(x)$的定义域为$R$，则$m\\\\in \\\\left[0,12\\\\right]$\",\"type\":1},{\"key\":\"B\",\"content\":\"若$f(x)$的定义域为$\\\\left[-2 ,3\\\\right]$，则$m=-\\\\frac{1}{2}$\",\"type\":1},{\"key\":\"C\",\"content\":\"若$f(x)$的值域为$\\\\left[0,+\\\\infty \\\\right)$，则$m\\\\in (12,+\\\\infty )$\",\"type\":1},{\"key\":\"D\",\"content\":\"若$f(x)$在$(\\\\frac{1}{2},+\\\\infty )$上单调递增，则$m\\\\in (0,+\\\\infty )$\",\"type\":1}]"
                 }
             ],
             "homework_guide_data": {

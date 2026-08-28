@@ -59,7 +59,7 @@ description: Assembles one lesson folder into a five-level class.json Body when 
 
 ## 当前实现边界
 
-文本组装仍由 Agent 按分册完成。TTS、COS 签名与直传已落在 `tools/tts.mjs`、`tools/upload-image.mjs`、`tools/fill-media.mjs`；硬性校验落在 `tools/check-class-rules.mjs`（班型取舍、每班非空 `learning_objective`、`begin_guide_data` 不含 `main_title`/`sub_title`、`question_type=4`、`options_json=""`、图片字段留空、源题有图则题面必须带 http(s) URL、屏幕公式无「`<` 后接字母」、无裸 `$[a,b]$`、无 `array`）、`tools/check-feiman-answer.mjs`（按星挖空、因果链与 LaTeX）、`tools/check-tts-voice.mjs`（逐字稿）。文本阶段保留源题的 `![说明](本地文件)`；`fill-media.mjs` 负责上传并写回裸 URL。课节批量新增接口地址与 key 见 [submit.md](submit.md)，尚无封装工具，需手工 POST；未真正收到 `lesson_id_list` 前，不能声称已入库。
+文本组装仍由 Agent 按分册完成。TTS、COS 签名与直传已落在 `tools/tts.mjs`、`tools/upload-image.mjs`、`tools/fill-media.mjs`；硬性校验落在 `tools/check-class-rules.mjs`（班型取舍、每班非空 `learning_objective`、`begin_guide_data` 不含 `main_title`/`sub_title`、`question_type` 仅为 `1`/`4`、`question_type=1` 时 `options_json` 合法且 `type=2` 的 `content` 为图片 URL、图片字段留空、源题有图则题面必须带 http(s) URL、屏幕公式无「`<` 后接字母」、无裸 `$[a,b]$`、无 `cases`、表格仅为规定的 `$$ array $$`）、`tools/check-feiman-answer.mjs`（按星挖空、因果链与 LaTeX）、`tools/check-tts-voice.mjs`（逐字稿）。文本阶段保留源题的 `![说明](本地文件)`；`fill-media.mjs` 负责上传并写回裸 URL（作业选择题的选项图写进 `options_json` 的 `content`）。课节批量新增接口地址与 key 见 [submit.md](submit.md)，尚无封装工具，需手工 POST；未真正收到 `lesson_id_list` 前，不能声称已入库。
 
 ## 交付前自检
 
@@ -76,9 +76,10 @@ description: Assembles one lesson folder into a five-level class.json Body when 
 □ 每条 week_question_data.courseware_num 与对应 quiz Markdown 的 ## 课件 ID 逐字一致
 □ 每条 feiman_data.answer 是课件讲法的因果复述，按费曼星级挖空（2–3星1处、4–5星2处、6–8星3处），含「因为…所以…；又因为…所以…」，去标记后不超过 500 字且与 question 不同
 □ feiman_data.answer 的数学公式都写成 $…$ 的 LaTeX，公式挖空写成 #$…$#，无裸运算符、无旧式 ##、无人称称呼与套话
-□ 题干、解析、费曼稿：字母前的 "<" 已改成 \lt，区间已写成 \left[ / \right]，无裸 "$[a,b]$" / 裸 "]$"，无 \begin{array} / \begin{cases} / \{ 联立
-□ 所有 homework_data.question_type 均为 4，options_json 均为 ""
-□ 带选项的费曼题与作业题，选项都留在 question 正文里
+□ 题干、解析、费曼稿：字母前的 "<" 已改成 \lt，区间已写成 \left[ / \right]，无裸 "$[a,b]$" / 裸 "]$"，无 \begin{cases} / \{ 联立；表格仅为 $$\begin{array}{|c|…|}\hline … \end{array}$$
+□ 作业题 question_type 仅为 1 或 4：有选项则为 1 且 options_json 已填；无选项则为 4 且 options_json 为 ""
+□ options_json 仅在 question_type=1 时有值：type=1 的 content 为文字，type=2 的 content 为图片 URL
+□ 带选项的费曼题，选项留在 question 正文里；作业选择题的选项写入 options_json，不抄进 question
 □ feiman_data.image_url、homework_data.image_url、week_question_data.stem_pic 全部为 ""
 □ 题干或选项带图的：源里的 `![说明](本地文件)` 已保留到文本稿，fill-media 已换成裸 URL 写进 question / stem 原位置
 □ 所有“不填”字段均未写入，数组为空时为 []，对象为空时为 null；无音频时 audio 为 ""

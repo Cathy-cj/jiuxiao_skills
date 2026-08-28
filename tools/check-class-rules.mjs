@@ -1,29 +1,80 @@
 // 硬性校验 class.json 的业务规则（schema.md / homework.md / media.md）：
-//   1. 所有 homework_data[].question_type 必须是 4，options_json 必须是 ""
+//   1. homework_data[].question_type 仅能为 1（有选项的选择题）或 4（其余题）；
+//      type=1 必须填写合法 options_json（type=1 文字 / type=2 图片 URL），type=4 的 options_json 必须是 ""
 //   2. 班型取舍：两个配星的 courseware.json 都在才上传；data 按 B→A→AA→AAA→S 排序，允许缺口；
 //      禁止漏传已配齐的班，禁止写入配不齐的班，禁止把「有文件夹但无 courseware.json」当成有课件
 //   3. 图片资源字段留空：feiman_data[].image_url、homework_data[].image_url、week_question_data[].stem_pic 全为 ""
 //      题面不得残留 ![说明](本地文件)；源 stem 有图时 question/stem 必须已有 http(s) 图 URL
 //   4. 每个班型必须有非空 learning_objective
 //   5. begin_guide_data 只允许 tts_text、audio，不得写 main_title、sub_title
-//   6. 屏幕公式预览安全：不得出现 "<" 后接字母（空格也不行）、裸区间 "["、裸 "]$"、array/cases
+//   6. 屏幕公式预览安全：不得出现 "<" 后接字母（空格也不行）、裸区间 "["、裸 "]$"、cases；
+//      表格只能是 $$ \begin{array}{|c|...|} \hline ... \end{array} $$，禁止 Markdown/HTML/tabular 表
 // 用法: node tools/check-class-rules.mjs <课节编码>/class.json [--source <课件根>]
 import { readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import process from 'node:process';
-import { leftoverLocalImages, httpUrlCount, stemImageKeys } from './image-refs.mjs';
+import {
+  leftoverLocalImages,
+  httpUrlCount,
+  stemImageKeys,
+  hasChoiceOptions,
+  isHttpUrl,
+  isImageOptionContent,
+} from './image-refs.mjs';
 
 const ORDER = ['B', 'A', 'AA', 'AAA', 'S'];
 const STARS = { B: [2, 3], A: [3, 4], AA: [4, 5], AAA: [5, 6], S: [7, 8] };
-const REQUIRED_QUESTION_TYPE = 4;
+const ALLOWED_QUESTION_TYPES = new Set([1, 4]);
 const HTML_LT = /<\s*[A-Za-z\\]/;
-const ARRAY_ENV = /\\begin\{(array|cases)\}/;
+const CASES_ENV = /\\begin\{cases\}/;
+const TABULAR_ENV = /\\begin\{tabular\}/;
+const HTML_TABLE = /<table[\s>]/i;
+const ARRAY_BEGIN = /\\begin\{array\}/;
+const MD_TABLE_LINE = /^\s*\|.+\|.+\|\s*$/;
 
 function stripAllowedBrackets(math) {
   return math
     .replace(/\\left\[/g, '')
     .replace(/\\sqrt\[/g, '')
     .replace(/\\(?:big|Big|bigg|Bigg)l?\[/g, '');
+}
+
+function withoutDisplayMath(text) {
+  return String(text ?? '').replace(/\$\$[\s\S]*?\$\$/g, '');
+}
+
+function tableArrayError(body) {
+  const trimmed = String(body ?? '').trim();
+  const wrapped = trimmed.match(/^\\begin\{array\}\{(\|c(?:\|c)*\|)\}([\s\S]*)\\end\{array\}$/);
+  if (!wrapped) {
+    return '表格必须写成 $$\\begin{array}{|c|c|...|c|}...\\end{array}$$：列格式只能是 |c|c|…|c|（两端都有 |，列对齐只用 c），且必须有成对 \\end{array}。';
+  }
+  const spec = wrapped[1];
+  const colCount = spec.slice(1, -1).split('|').filter(Boolean).length;
+  const inner = wrapped[2];
+  const chunks = inner.split(/\\hline/);
+  if (chunks.length < 3 || chunks[0].trim() !== '' || chunks[chunks.length - 1].trim() !== '') {
+    return 'array 内必须从 \\hline 起、以 \\hline 收，每行数据后都要 \\\\ 再接 \\hline。';
+  }
+  const rows = chunks.slice(1, -1);
+  if (!rows.length) {
+    return 'array 表格至少要有一行数据。';
+  }
+  for (const [index, rawRow] of rows.entries()) {
+    const row = rawRow.trim();
+    if (!/\\\\\s*$/.test(row)) {
+      return `第 ${index + 1} 行必须以 \\\\ 结尾，再写 \\hline。`;
+    }
+    const cells = row.replace(/\\\\\s*$/, '').split('&');
+    if (cells.length !== colCount) {
+      return `第 ${index + 1} 行列数是 ${cells.length}，与列格式 ${spec}（${colCount} 列）不一致。`;
+    }
+    const withoutText = cells.join('').replace(/\\text\{[^{}]*\}/g, '');
+    if (/[\u4e00-\u9fff]/.test(withoutText)) {
+      return `第 ${index + 1} 行的汉字必须写在 \\text{…} 里，例如 \\text{视力}、5.0\\text{及以上}。`;
+    }
+  }
+  return null;
 }
 
 function scanScreenMath(text, at, errors) {
@@ -33,14 +84,39 @@ function scanScreenMath(text, at, errors) {
       `${at}: "$...$" 里 "<" 后即使有空格也不能接字母，后台会当成 HTML 标签并把后面的 \\leq / \\frac 剥掉；改成 "$0\\lt m$"、"$g(1)\\lt g(t)$"。`,
     );
   }
-  if (ARRAY_ENV.test(text)) {
-    errors.push(`${at}: 禁止 \\begin{array} / \\begin{cases}，拆成「同时满足 $A$ 且 $B$」。`);
+  if (CASES_ENV.test(text)) {
+    errors.push(`${at}: 禁止 \\begin{cases}，联立拆成「同时满足 $A$ 且 $B$」。`);
   }
+  if (TABULAR_ENV.test(text) || HTML_TABLE.test(text)) {
+    errors.push(`${at}: 禁止 tabular / HTML table，表格只能写成 $$\\begin{array}{|c|…|}\\hline … \\end{array}$$。`);
+  }
+
+  const dollarDollar = [...text.matchAll(/\$\$/g)];
+  if (dollarDollar.length % 2 !== 0) {
+    errors.push(`${at}: $$ 必须成对，表格整块包在一对 $$…$$ 里。`);
+  }
+
+  const displays = [...text.matchAll(new RegExp('\\$\\$([\\s\\S]*?)\\$\\$', 'g'))];
+  for (const block of displays) {
+    if (ARRAY_BEGIN.test(block[1])) {
+      const reason = tableArrayError(block[1]);
+      if (reason) errors.push(`${at}: ${reason}`);
+    }
+  }
+
+  const rest = withoutDisplayMath(text);
+  if (ARRAY_BEGIN.test(rest)) {
+    errors.push(`${at}: \\begin{array} 必须整块包在 $$…$$ 里，不能写进行内 $...$ 或裸放在正文。`);
+  }
+  if (rest.split(/\n/).some((line) => MD_TABLE_LINE.test(line))) {
+    errors.push(`${at}: 禁止 Markdown 管道表（| a | b |），改写成 $$\\begin{array}{|c|…|}\\hline … \\end{array}$$。`);
+  }
+
   const span = /\$([^$]*)\$/g;
   let match;
   let bareOpen = false;
   let bareClose = false;
-  while ((match = span.exec(text))) {
+  while ((match = span.exec(rest))) {
     const math = match[1];
     if (stripAllowedBrackets(math).includes('[')) bareOpen = true;
     if (/\]$/.test(math) && !/\\right\]$/.test(math) && !/\\rbrack$/.test(math)) {
@@ -57,6 +133,91 @@ function scanScreenMath(text, at, errors) {
       `${at}: 半开区间不要以裸 "]$" 收尾，写成 $\\left(-1,\\frac{5}{4}\\right]$ 或 $\\left(-1,\\frac{5}{4}\\right\\rbrack$。`,
     );
   }
+}
+
+function checkHomeworkOptions(item, at, errors) {
+  const type = item?.question_type;
+  const raw = item?.options_json;
+  const questionHasOptions = hasChoiceOptions(item?.question);
+
+  if (!ALLOWED_QUESTION_TYPES.has(type)) {
+    errors.push(
+      `${at}: question_type 仅能为 1（单选）或 4（应用题），当前为 ${JSON.stringify(type)}。`,
+    );
+    return;
+  }
+
+  if (type === 4) {
+    if (raw !== '') {
+      errors.push(
+        `${at}: question_type=4 时 options_json 必须是 ""，当前为 ${JSON.stringify(raw)}。`,
+      );
+    }
+    if (questionHasOptions) {
+      errors.push(`${at}: 题面有 A/B/C/D 选项，必须设 question_type=1 并填写 options_json。`);
+    }
+    return;
+  }
+
+  if (typeof raw !== 'string' || raw === '') {
+    errors.push(`${at}: question_type=1 时 options_json 必须是非空 JSON 字符串。`);
+    return;
+  }
+
+  let options;
+  try {
+    options = JSON.parse(raw);
+  } catch (error) {
+    errors.push(`${at}: options_json 不是合法 JSON：${error.message}。`);
+    return;
+  }
+
+  if (!Array.isArray(options) || options.length < 2) {
+    errors.push(`${at}: options_json 必须是至少 2 项的数组。`);
+    return;
+  }
+
+  const keys = new Set();
+  options.forEach((option, index) => {
+    const optAt = `${at}.options_json[${index}]`;
+    if (!option || typeof option !== 'object') {
+      errors.push(`${optAt}: 必须是对象。`);
+      return;
+    }
+    if (!/^[A-H]$/.test(option.key)) {
+      errors.push(`${optAt}: key 必须是 A–H 的单个大写字母，当前为 ${JSON.stringify(option.key)}。`);
+    } else if (keys.has(option.key)) {
+      errors.push(`${optAt}: key ${option.key} 重复。`);
+    } else {
+      keys.add(option.key);
+    }
+
+    if (typeof option.content !== 'string' || !option.content.trim()) {
+      errors.push(`${optAt}: content 必须是非空字符串。`);
+      return;
+    }
+
+    leftoverLocalImages(option.content).forEach((img) => {
+      errors.push(`${optAt}.content: 仍有本地图 ${JSON.stringify(img.src)}，须先上传并把链接写入 content。`);
+    });
+
+    if (option.type === 1) {
+      if (isImageOptionContent(option.content)) {
+        errors.push(`${optAt}: type=1 时 content 必须是文字；选项为图片时应 type=2 并把图片链接写入 content。`);
+      }
+      scanScreenMath(option.content, `${optAt}.content`, errors);
+      return;
+    }
+
+    if (option.type === 2) {
+      if (!isHttpUrl(option.content.trim())) {
+        errors.push(`${optAt}: type=2 时 content 必须是图片 http(s) 链接，当前为 ${JSON.stringify(option.content)}。`);
+      }
+      return;
+    }
+
+    errors.push(`${optAt}: type 必须是 1（文字）或 2（图片链接），当前为 ${JSON.stringify(option.type)}。`);
+  });
 }
 
 function parseArgs(argv) {
@@ -182,12 +343,7 @@ payload.data.forEach((lesson, index) => {
   } else {
     homework.forEach((item, i) => {
       const at = `${mark}.homework_data[${i}]`;
-      if (item?.question_type !== REQUIRED_QUESTION_TYPE) {
-        errors.push(`${at}: question_type 必须是 ${REQUIRED_QUESTION_TYPE}，当前为 ${JSON.stringify(item?.question_type)}。`);
-      }
-      if (item?.options_json !== '') {
-        errors.push(`${at}: options_json 必须是 ""，选项只留在 question 正文里，当前为 ${JSON.stringify(item?.options_json)}。`);
-      }
+      checkHomeworkOptions(item, at, errors);
       if (item?.image_url !== '') {
         errors.push(`${at}: image_url 必须是 ""，图片只以裸 URL 写进 question 正文原位置，当前为 ${JSON.stringify(item?.image_url)}。`);
       }
@@ -333,5 +489,5 @@ if (errors.length > 0) {
 
 console.log(
   `\n✅ 硬性规则检查通过：${payload.data.length} 个班型（${types.join('→')}），` +
-    'learning_objective 齐全、question_type 全为 4、options_json 全为空、图片资源字段全为空，源题有图则题面已带 URL。',
+    'learning_objective 齐全、homework question_type 仅为 1/4、type=1 的 options_json 已校验、图片资源字段全为空，源题有图则题面已带 URL。',
 );
